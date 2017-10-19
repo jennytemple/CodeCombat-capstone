@@ -7,6 +7,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 
 
+def turn_off_warnings():
+    def warn(*args, **kwargs):
+        pass
+    import warnings
+    warnings.warn = warn
+
 def filter_missing(df):
     '''
     removes rows of data with any missing values
@@ -122,20 +128,27 @@ def random_feature(X):
     X = np.random.rand(X.shape[0],1)
     return X
 
+def print_scores(y_true, y_pred, multi_lr_accuracy):
+    multi_lr_f1_score_none = f1_score(y_true, y_pred, average=None)
+    multi_lr_f1_score_macro = f1_score(y_true, y_pred, average='macro')
+    multi_lr_f1_score_weighted = f1_score(y_true, y_pred, average='weighted')
+
+    print "\taccuracy = {}\n\tF1 score for each class = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(multi_lr_accuracy, multi_lr_f1_score_none, multi_lr_f1_score_macro, multi_lr_f1_score_weighted)
+
 def model_multi_log_reg(X_train_scaled, y_train, name):
     '''
     Model with a multinomial logistic regression and print results
     '''
     #For multiclass problems, only ‘newton-cg’, ‘sag’, ‘saga’ and ‘lbfgs’
-    multi_lr = LogisticRegression(multi_class='multinomial',solver='sag', max_iter=1000)
+    multi_lr = LogisticRegression(multi_class='multinomial',solver='sag', max_iter=1000, class_weight='balanced')
     multi_lr.fit(X_train_scaled, y_train)
 
     multi_lr_acc = multi_lr.score(X_train_scaled, y_train)
 
     y_predict = multi_lr.predict(X_train_scaled)
-    multi_lr_f1_score = f1_score(y_train, y_predict, average=None)
 
-    print "\nThe Multinomial logistic regression modeled {} with {} classes yielded a model with F1 score = {} on each category, and an overall accuracy of {}\n".format(name, num_labels, multi_lr_f1_score, multi_lr_acc)
+    print "\nThe Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_train, y_predict, multi_lr_acc)
 
     return y_predict
     #multi_lr.score(scaler.transform(X_test), y_test)
@@ -145,9 +158,12 @@ def compare_with_random_model(orig_X, y_train):
     rando_pred = model_multi_log_reg(X,y_train, "random feature")
 
 if __name__=='__main__':
-    sample_path = '../data/sample/'
-    august_path = '../data/august/'
-    march_path = '../data/march/'
+
+    turn_off_warnings()
+
+    sample_path = '../../data/sample/'
+    august_path = '../../data/august/'
+    march_path = '../../data/march/'
 
     path = march_path
     df = pd.read_csv(path+'post_processed_users.csv')
@@ -155,7 +171,7 @@ if __name__=='__main__':
     df = drop_fields(df)
     df = filter_missing(df)
 
-    num_labels = 2
+    num_labels = 4
     #y, name = categorize_by_level_num(df.pop('Levels Completed'),num_labels)
     y, name = categorize_by_campaign(df.pop('last_campaign_started'), num_labels)
 
