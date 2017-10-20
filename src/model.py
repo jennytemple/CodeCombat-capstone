@@ -53,16 +53,16 @@ def categorize_by_campaign (y, num_cats):
         mid = ['campaign-web-dev-1', 'campaign-game-dev-1', 'forest']
         y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else "later_churn"))
 
-    # if num_cats == 4:
-    #     early = ['dungeon']
-    #     mid = ['campaign-web-dev-1', 'campaign-game-dev-1', 'forest']
-    #     late = ['campaign-web-dev-2', 'campaign-game-dev-2', 'desert', 'mountain', 'glacier']
-    #     y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else ("later_churn" if row in late else "other")))
     if num_cats == 4:
         early = ['dungeon']
-        mid = ['forest']
-        late = ['campaign-web-dev-1', 'campaign-game-dev-1','campaign-web-dev-2', 'campaign-game-dev-2', 'desert', 'mountain', 'glacier']
+        mid = ['campaign-web-dev-1', 'campaign-game-dev-1', 'forest']
+        late = ['campaign-web-dev-2', 'campaign-game-dev-2', 'desert', 'mountain', 'glacier']
         y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else ("later_churn" if row in late else "other")))
+    # if num_cats == 4:
+    #     early = ['dungeon']
+    #     mid = ['forest']
+    #     late = ['campaign-web-dev-1', 'campaign-game-dev-1','campaign-web-dev-2', 'campaign-game-dev-2', 'desert', 'mountain', 'glacier']
+    #     y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else ("later_churn" if row in late else "other")))
     #could also investigate campaign vs dev
     return y.values, name
 
@@ -171,9 +171,9 @@ if __name__=='__main__':
     df = drop_fields(df)
     df = filter_missing(df)
 
-    num_labels = 4
-    #y, name = categorize_by_level_num(df.pop('Levels Completed'),num_labels)
-    y, name = categorize_by_campaign(df.pop('last_campaign_started'), num_labels)
+    num_labels = 2
+    y, name = categorize_by_level_num(df.pop('Levels Completed'),num_labels)
+    #y, name = categorize_by_campaign(df.pop('last_campaign_started'), num_labels)
 
     df = drop_unused_labels(df)
     df = dummify_with_countries(df)
@@ -192,27 +192,75 @@ if __name__=='__main__':
 
     compare_with_random_model(X_train_scaled, y_train)
 
+    '''*** Results *** '''
     '''
     using campaigns, 4
-    The Multinomial logistic regression with 4 classes yielded a model with F1 score = [ 0.85365582  0.04273504  0.1649063   0.        ] on each category, and an overall accuracy of 0.748535248535
+    The Multinomial logistic regression modeled categories by campaign with 4 classes yielded a model with:
+	accuracy = 0.554455679456
+	F1 score for each class = [ 0.7538172   0.06045137  0.25324543  0.04923077]
+	F1 score, macro = 0.279186192289
+	F1 score, weighted 0.62181023731
+
+    The Multinomial logistic regression modeled random feature with 4 classes yielded a model with:
+	accuracy = 0.604965979966
+	F1 score for each class = [ 0.73497562  0.          0.25563354  0.        ]
+	F1 score, macro = 0.247652291442
+	F1 score, weighted 0.607271420649
     '''
     '''
     using num levels, 4
+    The Multinomial logistic regression modeled categories by level with 4 classes yielded a model with:
+	accuracy = 0.541461916462
+	F1 score for each class = [ 0.73179918  0.37261799  0.09355247  0.05900846]
+	F1 score, macro = 0.314244524829
+	F1 score, weighted 0.570875200075
 
-    The Multinomial logistic regression with 4 classes yielded a model with F1 score = [ 0.74384725  0.59240552  0.1763285   0.01092896] on each category, and an overall accuracy of 0.677211302211
+    The Multinomial logistic regression modeled random feature with 4 classes yielded a model with:
+	accuracy = 0.174447174447
+	F1 score for each class = [ 0.          0.41377939  0.          0.00800518]
+	F1 score, macro = 0.105446142113
+	F1 score, weighted 0.170672602754
+
     '''
     '''
     using campaigns, 2
-    The Multinomial logistic regression with 2 classes yielded a model with F1 score = [ 0.84943545  0.15007849] on each category, and an overall accuracy of 0.744188244188
+    The Multinomial logistic regression modeled categories by campaign with 2 classes yielded a model with:
+	accuracy = 0.683779058779 ********** best model
+	F1 score for each class = [ 0.76560721  0.51417371]
+	F1 score, macro = 0.639890464491
+	F1 score, weighted 0.701204407814
+
+    The Multinomial logistic regression modeled random feature with 2 classes yielded a model with:
+	accuracy = 0.50025987526
+	F1 score for each class = [ 0.59830228  0.33890677]
+	F1 score, macro = 0.46860452851
+	F1 score, weighted 0.531860067984
     '''
     '''
     using levels, 2
-    The Multinomial logistic regression with 2 classes yielded a model with F1 score = [ 0.85316055  0.20489505] on each category, and an overall accuracy of 0.752102627103
+    The Multinomial logistic regression modeled categories by level with 2 classes yielded a model with:
+	accuracy = 0.685031185031
+	F1 score for each class = [ 0.79217459  0.34984882]
+	F1 score, macro = 0.571011707769
+	F1 score, weighted 0.748587821518
+
+    The Multinomial logistic regression modeled random feature with 2 classes yielded a model with:
+	accuracy = 0.90146002646
+	F1 score for each class = [ 0.94817668  0.        ]
+	F1 score, macro = 0.474088339442
+	F1 score, weighted 0.854743374036
     '''
     '''
-    using a single random feature
+    using 3 campaigns
+    The Multinomial logistic regression modeled categories by campaign with 3 classes yielded a model with:
+	accuracy = 0.587507087507
+	F1 score for each class = [ 0.76140716  0.09494192  0.3258348 ]
+	F1 score, macro = 0.394061293252
+	F1 score, weighted 0.644919767417
 
-
-    rando feature and 4 campaigns
-    The Multinomial logistic regression with 4 classes yielded a model with F1 score = [ 0.72477216  0.          0.          0.        ] on each category, and an overall accuracy of 0.568347193347
+    The Multinomial logistic regression modeled random feature with 3 classes yielded a model with:
+	accuracy = 0.402853902854
+	F1 score for each class = [ 0.61799692  0.03861153  0.        ]
+	F1 score, macro = 0.218869481722
+	F1 score, weighted 0.46019777515
     '''
