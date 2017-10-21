@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
+from sklearn.ensemble import RandomForestClassifier
 
 
 def turn_off_warnings():
@@ -13,6 +14,7 @@ def turn_off_warnings():
     import warnings
     warnings.warn = warn
 
+
 def filter_missing(df):
     '''
     removes rows of data with any missing values
@@ -20,8 +22,8 @@ def filter_missing(df):
     '''
     return df.dropna(axis=0, how='any')
 
-def categorize_by_level_num (level_nums, num_cats):
 
+def categorize_by_level_num(level_nums, num_cats):
     '''
     For now, use number of levels, but later do by last campaign
     campaigns = pd.read_csv('../data/campaign_list.csv')
@@ -29,15 +31,17 @@ def categorize_by_level_num (level_nums, num_cats):
     '''
     name = "categories by level"
     if num_cats == 2:
-        bins = np.array([5, 20, 999])
+        # 1st bin: x s.t. value0 <= x < value1
+        bins = np.array([0, 12, 999])
+        print bins
     if num_cats == 4:
-        bins = np.array([5, 12, 39, 100, 999])
+        bins = np.array([0, 12, 39, 100, 999])
 
     y = np.digitize(level_nums, bins)
     return y, name
 
-def categorize_by_campaign (y, num_cats):
 
+def categorize_by_campaign(y, num_cats):
     '''
     Use to predict where in game the player will end instead of number of levels played
     campaigns = pd.read_csv('../data/campaign_list.csv')
@@ -46,34 +50,43 @@ def categorize_by_campaign (y, num_cats):
     name = "categories by campaign"
     if num_cats == 2:
         early = ['dungeon']
-        y = y.apply(lambda row: "early_churn" if row in ['dungeon'] else "later_churn")
+        y = y.apply(lambda row: "early_churn" if row in [
+                    'dungeon'] else "later_churn")
 
     if num_cats == 3:
         early = ['dungeon']
         mid = ['campaign-web-dev-1', 'campaign-game-dev-1', 'forest']
-        y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else "later_churn"))
+        y = y.apply(lambda row: "early_churn" if row in early else (
+            "mid_churn" if row in mid else "later_churn"))
 
     if num_cats == 4:
         early = ['dungeon']
         mid = ['campaign-web-dev-1', 'campaign-game-dev-1', 'forest']
-        late = ['campaign-web-dev-2', 'campaign-game-dev-2', 'desert', 'mountain', 'glacier']
-        y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else ("later_churn" if row in late else "other")))
+        late = ['campaign-web-dev-2', 'campaign-game-dev-2',
+                'desert', 'mountain', 'glacier']
+        y = y.apply(lambda row: "early_churn" if row in early else (
+            "mid_churn" if row in mid else ("later_churn" if row in late else "other")))
     # if num_cats == 4:
     #     early = ['dungeon']
     #     mid = ['forest']
     #     late = ['campaign-web-dev-1', 'campaign-game-dev-1','campaign-web-dev-2', 'campaign-game-dev-2', 'desert', 'mountain', 'glacier']
     #     y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else ("later_churn" if row in late else "other")))
-    #could also investigate campaign vs dev
+    # could also investigate campaign vs dev
     return y.values, name
 
 
 def drop_fields(df):
     zero_this_data_set = ['hints_clicked_first_six', 'hints_used_first_six']
-    captured_in_target = ['Playtime (s)', 'last_event_date', 'last_action', 'last_level_name', 'active_time_days', 'data_through', 'activity_gap_days', 'Level', 'last_level_time_s', 'daygap', 'was_completed', 'last_level_started']
-    may_capture_target = ['avg_play_time_per_level_s', 'avg_num_days_per_level']
-    not_useful = ['Unnamed: 0','Id', 'Date Joined', 'Practice']
-    too_sparse = ['Gender','Want to be a programmer?', 'How long have you been programming?', 'How hard is CodeCombat?','How did you hear about CodeCombat?','Gender?', 'Favorite programming language?', 'Early bird or night owl?', 'What polls do you like?', 'Friends who code?', 'How fast is your internet?', 'After playing CodeCombat',' how interested are you in programming?', 'How likely are you to recommend CodeCombat?', "How likely that you'd recommend CodeCombat?"]
-    df.drop(zero_this_data_set, axis=1, inplace=True)
+    dates = ['date_completed_first_six']
+    captured_in_target = ['Playtime (s)', 'last_event_date', 'last_action', 'last_level_name', 'active_time_days',
+                          'data_through', 'activity_gap_days', 'Level', 'last_level_time_s', 'daygap', 'was_completed', 'last_level_started', 'num_levels_completed_in_first_six']
+    may_capture_target = [
+        'avg_play_time_per_level_s', 'avg_num_days_per_level']
+    not_useful = ['Unnamed: 0', 'Id', 'Date Joined', 'Practice']
+    too_sparse = ['Gender', 'Want to be a programmer?', 'How long have you been programming?', 'How hard is CodeCombat?', 'How did you hear about CodeCombat?', 'Gender?', 'Favorite programming language?', 'Early bird or night owl?',
+                  'What polls do you like?', 'Friends who code?', 'How fast is your internet?', 'After playing CodeCombat', ' how interested are you in programming?', 'How likely are you to recommend CodeCombat?', "How likely that you'd recommend CodeCombat?"]
+    # df.drop(zero_this_data_set, axis=1, inplace=True)
+    df.drop(dates, axis=1, inplace=True)
     df.drop(captured_in_target, axis=1, inplace=True)
     df.drop(may_capture_target, axis=1, inplace=True)
     df.drop(not_useful, axis=1, inplace=True)
@@ -104,8 +117,9 @@ def dummify_with_countries(X):
     ages = pd.get_dummies(X['How old are you?'])
     X[ages.columns] = ages
 
-    X.drop(['Country', 'Code Language','How old are you?'], axis=1, inplace=True)
+    X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
     return X
+
 
 def dummify_no_countries(X):
     languages = pd.get_dummies(X['Code Language'])
@@ -117,6 +131,7 @@ def dummify_no_countries(X):
     X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
     return X
 
+
 def extreme_filter(X):
     '''
     Make a very simple version of X to test that model is running
@@ -124,40 +139,65 @@ def extreme_filter(X):
     X = X[['avg_first_six_playtime_s']]
     return X
 
+
 def random_feature(X):
-    X = np.random.rand(X.shape[0],1)
+    X = np.random.rand(X.shape[0], 1)
     return X
 
-def print_scores(y_true, y_pred, multi_lr_accuracy):
-    multi_lr_f1_score_none = f1_score(y_true, y_pred, average=None)
-    multi_lr_f1_score_macro = f1_score(y_true, y_pred, average='macro')
-    multi_lr_f1_score_weighted = f1_score(y_true, y_pred, average='weighted')
 
-    print "\taccuracy = {}\n\tF1 score for each class = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(multi_lr_accuracy, multi_lr_f1_score_none, multi_lr_f1_score_macro, multi_lr_f1_score_weighted)
+def print_scores(y_true, y_pred):
+    accuracy = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred, average=None)
+    recall = recall_score(y_true, y_pred, average=None)
+
+    f1_score_micro = f1_score(y_true, y_pred, average='micro')
+    f1_score_none = f1_score(y_true, y_pred, average=None)
+    f1_score_macro = f1_score(y_true, y_pred, average='macro')
+    f1_score_weighted = f1_score(y_true, y_pred, average='weighted')
+
+    print "\taccuracy = {}, \n\tprecision = {}, \n\trecall = {}".format(accuracy, precision, recall)
+    print "\tF1 score for each class = {} \n\tF1 score, micro = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(f1_score_none, f1_score_micro, f1_score_macro, f1_score_weighted)
+
 
 def model_multi_log_reg(X_train_scaled, y_train, name):
     '''
     Model with a multinomial logistic regression and print results
     '''
-    #For multiclass problems, only ‘newton-cg’, ‘sag’, ‘saga’ and ‘lbfgs’
-    multi_lr = LogisticRegression(multi_class='multinomial',solver='sag', max_iter=1000, class_weight='balanced')
+    # For multiclass problems, only ‘newton-cg’, ‘sag’, ‘saga’ and ‘lbfgs’
+    multi_lr = LogisticRegression(
+        multi_class='multinomial', solver='sag', max_iter=1000, class_weight='balanced')
     multi_lr.fit(X_train_scaled, y_train)
 
-    multi_lr_acc = multi_lr.score(X_train_scaled, y_train)
+    # multi_lr_acc = multi_lr.score(X_train_scaled, y_train)
 
     y_predict = multi_lr.predict(X_train_scaled)
 
     print "\nThe Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
-    print_scores(y_train, y_predict, multi_lr_acc)
+    print_scores(y_train, y_predict)
 
     return y_predict
     #multi_lr.score(scaler.transform(X_test), y_test)
 
+
+def model_random_forest(X_train, y_train, name):
+    '''
+    Model with a random forest and print results
+    '''
+    rand_forest = RandomForestClassifier(class_weight="balanced")
+    rand_forest.fit(X_train, y_train)
+    y_predict = rand_forest.predict(X_train)
+
+    print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_train, y_predict)
+    return "test"
+
+
 def compare_with_random_model(orig_X, y_train):
     X = random_feature(orig_X)
-    rando_pred = model_multi_log_reg(X,y_train, "random feature")
+    rando_pred = model_multi_log_reg(X, y_train, "random feature")
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
 
     turn_off_warnings()
 
@@ -166,14 +206,15 @@ if __name__=='__main__':
     march_path = '../../data/march/'
 
     path = march_path
-    df = pd.read_csv(path+'post_processed_users.csv')
+    df = pd.read_csv(path + 'post_processed_users.csv')
 
     df = drop_fields(df)
     df = filter_missing(df)
 
     num_labels = 2
-    y, name = categorize_by_level_num(df.pop('Levels Completed'),num_labels)
-    #y, name = categorize_by_campaign(df.pop('last_campaign_started'), num_labels)
+    y, name = categorize_by_level_num(df.pop('Levels Completed'), num_labels)
+    # y, name = categorize_by_campaign(
+    # df.pop('last_campaign_started'), num_labels)
 
     df = drop_unused_labels(df)
     df = dummify_with_countries(df)
@@ -184,13 +225,18 @@ if __name__=='__main__':
 
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-    scaler = StandardScaler().fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
+    ''' Multinomial Logistic Regression '''
+    # scaler = StandardScaler().fit(X_train)
+    # X_train_scaled = scaler.transform(X_train)
+    #
+    # y_pred = model_multi_log_reg(X_train_scaled, y_train, name)
+    # print "\nThe model makes {} predictions and the sum of predictions is {}".format(y_pred.shape[0], y_pred.sum())
 
-    y_pred = model_multi_log_reg(X_train_scaled, y_train, name)
-    #print "\nThe model makes {} predictions and the sum of predictions is {}".format(y_pred.shape[0], y_pred.sum())
+    ''' Random Forest'''
+    y_pred = model_random_forest(X_train, y_train, name)
 
-    compare_with_random_model(X_train_scaled, y_train)
+    '''Random Model'''
+    # compare_with_random_model(X_train_scaled, y_train)
 
     '''*** Results *** '''
     '''
