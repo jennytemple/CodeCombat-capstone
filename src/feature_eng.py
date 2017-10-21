@@ -39,6 +39,11 @@ def cleanup_events(df_events):
     return df_events
 
 
+def cleanup_levels(df_levels):
+    df_levels['Created'] = pd.to_datetime(df_levels['Created'])
+    return df_levels
+
+
 def cleanup_users(df_users):
     df_users['Date Joined'] = pd.to_datetime(df_users['Date Joined'])
     # funky comma in csv headings. Move everything over to ac-coma-date
@@ -59,6 +64,8 @@ def add_total_play_time_per_user(df_users, df_levels):
     '''get total time spent playing per user and add to df'''
     total_play_time = df_levels[['Playtime (s)', 'User Id']].groupby(
         'User Id').sum().sort_values(by='Playtime (s)', ascending=False)
+    total_play_time = total_play_time.rename(
+        index=str, columns={'Playtime (s)': 'total_play_time'})
     # reset index
     total_play_time['Id'] = total_play_time.index
 
@@ -145,7 +152,7 @@ def add_last_level_completion_info(df_users, df_levels):
 
 def add_avg_play_per_level(df_users):
     '''add the average play time per level for all levels played'''
-    df_users['avg_play_time_per_level_s'] = df_users['Playtime (s)'] / \
+    df_users['avg_play_time_per_level_s'] = df_users['total_play_time'] / \
         df_users['Levels Completed']
     return df_users
 
@@ -224,9 +231,14 @@ def add_group_completion_num(df_users, df_events, level_group, name):
     return df_users
 
 
-def add_number_special_activities(df_users, df_events, event_type, date_field, new_field_name):
+def add_number_special_activities(df_users, df_events, event_type, date_field, ref_field, new_field_name, use_events=True):
     '''count the number of times per user a specific event type occured within a time frame defined earlier and add it to the users df '''
-    df_events_special = df_events[df_events['Event Name'] == event_type]
+    '''primarily built for event dataframe events, but also handles practice field in the level data frame'''
+    if use_events:
+        df_events_special = df_events[df_events['Event Name'] == event_type]
+    else:
+        df_events_special = df_events[df_events['Practice'] == True]
+
     df_events_special = df_events_special.rename(
         index=str, columns={'User Id': 'Id', 'Created': 'event_date'})
     df_users_max_dates = df_users[['Id', date_field]]
@@ -236,8 +248,13 @@ def add_number_special_activities(df_users, df_events, event_type, date_field, n
     df_events_special = df_events_special[df_events_special['event_date']
                                           <= df_events_special[date_field]]
     event_count = df_events_special.groupby('Id').count()
-    event_count = event_count.rename(
-        index=str, columns={'Event Name': new_field_name})
+    if use_events:
+        event_count = event_count.rename(
+            index=str, columns={'Event Name': new_field_name})
+    else:
+        event_count = event_count.rename(
+            index=str, columns={'Practice': new_field_name})
+
     event_count = event_count[[new_field_name]]
     event_count['Id'] = event_count.index.astype(int)
 
@@ -245,22 +262,23 @@ def add_number_special_activities(df_users, df_events, event_type, date_field, n
     df_users = pd.merge(df_users, event_count, how='left', on='Id')
     df_users[new_field_name] = df_users[new_field_name].fillna(0)
     df_users[new_field_name] = df_users[new_field_name] / \
-        df_users['num_levels_completed_in_first_six']
+        df_users[ref_field]
 
     return df_users
 
 
-def add_num_startlevels(df_users, df_events, date_field, event_type='Started Level'):
-    df_users = add_number_special_activities(
-        df_users, df_events, event_type, date_field, 'temp_count')
-    df_users['starts_per_played_first_six'] = df_users['temp_count'] / \
-        df_users['num_levels_completed_in_first_six']
-    df_users.drop(['temp_count'], axis=1, inplace=True)
-
-    '''
-    Investigate problem: some users with fewer starts than levels played? df_users[df_users['starts_per_played_first_six']<1.0]
-    '''
-    return df_users
+''' deprecated '''
+# def add_num_startlevels(df_users, df_events, date_field, event_type='Started Level'):
+#     df_users = add_number_special_activities(
+#         df_users, df_events, event_type, date_field, 'temp_count')
+#     df_users['starts_per_played_first_six'] = df_users['temp_count'] / \
+#         df_users['num_levels_completed_in_first_six']
+#     df_users.drop(['temp_count'], axis=1, inplace=True)
+#
+#     '''
+#     Investigate problem: some users with fewer starts than levels played? df_users[df_users['starts_per_played_first_six']<1.0]
+#     '''
+#     return df_users
 
 
 def fill_out_age(df_users):
@@ -301,13 +319,14 @@ if __name__ == '__main__':
 
     path = tiny_sample_path
     df_users, df_levels, df_events = read_files(path)
-    print df_users.columns
 
     # clean up and filter user df if necessary
     df_events = cleanup_events(df_events)
+    df_levels = cleanup_levels(df_levels)
     df_users = cleanup_users(df_users)
     min_level_reached = 1  # 7
     df_users = user_filter(df_users, min_level_reached)
+    orig_fields = set(df_users.columns)
 
     # add fields to user df for eda (not to be used in model)
     df_users = add_total_play_time_per_user(
@@ -315,14 +334,16 @@ if __name__ == '__main__':
     df_users = add_last_play_info(df_users, df_events)
     df_users = add_active_days(df_users)
     df_users = add_activity_gap_info(df_users, '2017-10-15')
-    print df_users.columns
     df_users = add_last_level_completion_info(df_users, df_levels)
     df_users = add_avg_play_per_level(df_users)
+    df_users = add_avg_days_per_level(df_users)
+    added_eda_only_fields = set(df_users.columns) - orig_fields
 
     # add fields to user df for target modeling and eda
-    df_users = add_avg_days_per_level(df_users)
     df_users = add_last_level_started(df_users, df_levels)
     df_users = add_last_campaign_started(df_users)
+    added_target_fields = set(df_users.columns) - \
+        orig_fields - added_eda_only_fields
 
     # add fields to user df for features modeling and eda
     df_users = fill_out_age(df_users)
@@ -338,15 +359,29 @@ if __name__ == '__main__':
         df_users, df_events, first_six_data, "first_six")
 
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hint Used', 'date_completed_first_six', 'hint_used_first_six')
+        df_users, df_events, 'Hint Used', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'hint_used_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Clicked', 'date_completed_first_six', 'hints_clicked_first_six')
+        df_users, df_events, 'Hints Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'hints_clicked_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Next Clicked', 'date_completed_first_six', 'hints_next_clicked_first_six')
+        df_users, df_events, 'Hints Next Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'hints_next_clicked_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Show problem alert', 'date_completed_first_six', 'show_problem_alerts_first_six')
-    df_users = add_num_startlevels(
-        df_users, df_events, 'date_completed_first_six')
+        df_users, df_events, 'Started Level', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'started_level_first_six')
+    df_users = add_number_special_activities(
+        df_users, df_events, 'Show problem alert', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'show_problem_alerts_first_six')
+    df_users = add_number_special_activities(
+        df_users, df_levels, 'Practice', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'practice_levels_first_six', use_events=False)
+
+    added_modeling_fields = set(df_users.columns) - orig_fields - \
+        added_eda_only_fields - added_target_fields
+
+    # for testing. Maybe for EDA...
+    # all_levels = list(df_levels['Level'].unique())
+    # df_users = add_group_completion_date(
+    #     df_users, df_events, all_levels, "all")
+    # df_users = add_group_completion_num(
+    #     df_users, df_events, all_levels, "all")
+    # df_users = add_number_special_activities(
+    #     df_users, df_levels, 'Practice', 'date_completed_all', 'num_levels_completed_in_all', 'practice_levels_all', use_events=False)
 
     # write out csv file for later use
     df_users.to_csv(path + 'post_processed_users.csv')
