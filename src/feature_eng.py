@@ -25,7 +25,8 @@ def read_files(path):
                     'raw_event1', 'raw_event2', 'raw_event3', 'raw_event4']
 
     df_users = pd.read_csv(path + 'users.csv')
-    df_users.drop('Unnamed: 0', axis=1, inplace=True)
+    if 'Unnamed: 0' in df_users.columns:
+        df_users.drop('Unnamed: 0', axis=1, inplace=True)
     df_levels = pd.read_csv(path + 'levels.csv')
     df_events = pd.read_csv(path + 'events.csv', skiprows=1,
                             names=event_header, error_bad_lines=False, warn_bad_lines=True)
@@ -140,7 +141,7 @@ def add_last_level_completion_info(df_users, df_levels):
     df_last_level['last_level_was_completed'] = df_last_level['Date Completed'] > 0
     # drop unnecesary fields
     df_last_level.drop(
-        ['Created_y', 'Created_x', 'Date Completed', 'Unnamed: 0', 'Code Language'], axis=1, inplace=True)
+        ['Created_y', 'Created_x', 'Date Completed', 'Code Language'], axis=1, inplace=True)
     # rename columns
     df_last_level = df_last_level.rename(
         index=str, columns={'User Id': 'Id', 'Playtime (s)': 'last_level_time_s', 'Practice': 'last_level_was_practice', 'Level': 'last_level_played'})
@@ -317,7 +318,7 @@ if __name__ == '__main__':
     march_path = '../../data/march/'
     tiny_sample_path = '../../data/tiny_sample/'
 
-    path = tiny_sample_path
+    path = march_path
     df_users, df_levels, df_events = read_files(path)
 
     # clean up and filter user df if necessary
