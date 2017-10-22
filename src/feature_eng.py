@@ -3,23 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# add something about number of hints uses/followed
-# consider adding time spent playing last completed level
-# add dummy variables for new fields if question unanswered
-# add an indicator for churn (will take more work to define)
-
-# first identify churners, then before churn occurred:
-# last completed level
-# time spent on last completed level
-# last played level
-# time spent on last played level
-# number of logins for last played level
-# number of hints used on last played level
-# indicator if completed last level or not
-# number of days between last logins
-
-# Questions: should churners be broken into different groups? By either duration of account, number of logins, or number of levels played? For example, churners who leave between levels 10 and 49 may be different than those that churn between levels 50 and 149, or those who churn after 150. An early churner may be checking things out. A late churner may start finding the games too difficult or
-
 def read_files(path):
     event_header = ['Created', 'User Id', 'Event Name', 'Level',
                     'raw_event1', 'raw_event2', 'raw_event3', 'raw_event4']
@@ -268,20 +251,6 @@ def add_number_special_activities(df_users, df_events, event_type, date_field, r
     return df_users
 
 
-''' deprecated '''
-# def add_num_startlevels(df_users, df_events, date_field, event_type='Started Level'):
-#     df_users = add_number_special_activities(
-#         df_users, df_events, event_type, date_field, 'temp_count')
-#     df_users['starts_per_played_first_six'] = df_users['temp_count'] / \
-#         df_users['num_levels_completed_in_first_six']
-#     df_users.drop(['temp_count'], axis=1, inplace=True)
-#
-#     '''
-#     Investigate problem: some users with fewer starts than levels played? df_users[df_users['starts_per_played_first_six']<1.0]
-#     '''
-#     return df_users
-
-
 def fill_out_age(df_users):
     df_users['How old are you?'] = df_users['How old are you?'].fillna('other')
     return df_users
@@ -387,4 +356,12 @@ if __name__ == '__main__':
     # write out csv file for later use
     df_users.to_csv(path + 'post_processed_users.csv')
 
+    print "Orig fields are:"
+    print orig_fields
+    print "Fields added for EDA are:"
+    print added_eda_only_fields
+    print "Fields added for target are:"
+    print added_target_fields
+    print "Fields added for modeling are:"
+    print added_modeling_fields
     print "cool"

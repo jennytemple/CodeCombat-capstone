@@ -35,7 +35,8 @@ def categorize_by_level_num(level_nums, num_cats):
         bins = np.array([0, 12, 999])
         print bins
     if num_cats == 4:
-        bins = np.array([0, 12, 39, 100, 999])
+        # levels 20 to 21 is a pretty big drop off
+        bins = np.array([0, 12, 21, 100, 999])
 
     y = np.digitize(level_nums, bins)
     return y, name
@@ -75,60 +76,88 @@ def categorize_by_campaign(y, num_cats):
     return y.values, name
 
 
-def drop_fields(df):
-    zero_this_data_set = ['hints_clicked_first_six', 'hints_used_first_six']
-    dates = ['date_completed_first_six']
-    captured_in_target = ['Playtime (s)', 'last_event_date', 'last_action', 'last_level_name', 'active_time_days',
-                          'data_through', 'activity_gap_days', 'Level', 'last_level_time_s', 'daygap', 'was_completed', 'last_level_started', 'num_levels_completed_in_first_six']
-    may_capture_target = [
-        'avg_play_time_per_level_s', 'avg_num_days_per_level']
-    not_useful = ['Unnamed: 0', 'Id', 'Date Joined', 'Practice']
-    too_sparse = ['Gender', 'Want to be a programmer?', 'How long have you been programming?', 'How hard is CodeCombat?', 'How did you hear about CodeCombat?', 'Gender?', 'Favorite programming language?', 'Early bird or night owl?',
-                  'What polls do you like?', 'Friends who code?', 'How fast is your internet?', 'After playing CodeCombat', ' how interested are you in programming?', 'How likely are you to recommend CodeCombat?', "How likely that you'd recommend CodeCombat?"]
-    # df.drop(zero_this_data_set, axis=1, inplace=True)
+def drop_unmodeled_fields(df):
+
+    dates = ['date_completed_first_six', 'Date Joined']
+    eda_only_fields = ['last_event_date',
+                       'avg_num_days_per_level',
+                       'last_action',
+                       'active_time_days',
+                       'total_play_time',
+                       'last_level_was_practice',
+                       'last_level_name',
+                       'activity_gap_days',
+                       'data_through',
+                       'last_level_was_completed',
+                       'daygap',
+                       'last_level_played',
+                       'avg_play_time_per_level_s',
+                       'last_level_time_s']
+
+    too_sparse = ['How likely are you to recommend CodeCombat?',
+                  'How hard is CodeCombat?',
+                  'What polls do you like?',
+                  'How interested are you in programming?',
+                  'How did you hear about CodeCombat?',
+                  'Early bird or night owl?',
+                  'How fast is your internet?',
+                  'Friends who code?',
+                  "How likely that you'd recommend CodeCombat?",
+                  'Want to be a programmer?',
+                  'Gender',
+                  'Favorite programming language?',
+                  'How long have you been programming?',
+                  'Gender?']
+
+    not_useful = ['Id', 'Unnamed: 0']
+
     df.drop(dates, axis=1, inplace=True)
-    df.drop(captured_in_target, axis=1, inplace=True)
-    df.drop(may_capture_target, axis=1, inplace=True)
-    df.drop(not_useful, axis=1, inplace=True)
+    df.drop(eda_only_fields, axis=1, inplace=True)
     df.drop(too_sparse, axis=1, inplace=True)
+    df.drop(not_useful, axis=1, inplace=True)
 
     return df
 
 
-def drop_unused_labels(df):
+def fix_target_and_drop_target_fields(df, target):
     '''
-    check columns that may have been dropped already with target choice and drop if still included
+    return identified target field and drop other target-related fields
     '''
-    if 'Levels Completed' in df.columns:
-        df.drop('Levels Completed', axis=1, inplace=True)
-    if 'last_campaign_started' in df.columns:
-        df.drop('last_campaign_started', axis=1, inplace=True)
+    target_fields = ['last_campaign_started',
+                     'last_level_started', 'Levels Completed']
 
-    return df
+    y = df.pop(target)
+    for level in target_fields:
+        if level != target:
+            df.drop(level, axis=1, inplace=True)
+
+    return df, y
 
 
 def dummify_with_countries(X):
     countries = pd.get_dummies(X['Country'])
     X[countries.columns] = countries
 
-    languages = pd.get_dummies(X['Code Language'])
-    X[languages.columns] = languages
+    # languages = pd.get_dummies(X['Code Language'])
+    # X[languages.columns] = languages
 
     ages = pd.get_dummies(X['How old are you?'])
     X[ages.columns] = ages
 
-    X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
+    # X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
+    X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
     return X
 
 
 def dummify_no_countries(X):
-    languages = pd.get_dummies(X['Code Language'])
-    X[languages.columns] = languages
+    # languages = pd.get_dummies(X['Code Language'])
+    # X[languages.columns] = languages
 
     ages = pd.get_dummies(X['How old are you?'])
     X[ages.columns] = ages
 
-    X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
+    # X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
+    X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
     return X
 
 
@@ -179,16 +208,22 @@ def model_multi_log_reg(X_train_scaled, y_train, name):
     #multi_lr.score(scaler.transform(X_test), y_test)
 
 
-def model_random_forest(X_train, y_train, name):
+def model_random_forest(X_train, y_train, name, X_test, y_test):
     '''
     Model with a random forest and print results
     '''
     rand_forest = RandomForestClassifier(class_weight="balanced")
     rand_forest.fit(X_train, y_train)
-    y_predict = rand_forest.predict(X_train)
 
+    print "On TRAIN data:"
+    y_predict = rand_forest.predict(X_train)
     print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_train, y_predict)
+
+    print "On TEST data:"
+    y_predict = rand_forest.predict(X_test)
+    print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_test, y_predict)
     return "test"
 
 
@@ -208,15 +243,15 @@ if __name__ == '__main__':
     path = march_path
     df = pd.read_csv(path + 'post_processed_users.csv')
 
-    df = drop_fields(df)
+    df = drop_unmodeled_fields(df)
     df = filter_missing(df)
 
+    target = 'Levels Completed'
+    df, y = fix_target_and_drop_target_fields(df, target)
     num_labels = 2
-    y, name = categorize_by_level_num(df.pop('Levels Completed'), num_labels)
-    # y, name = categorize_by_campaign(
-    # df.pop('last_campaign_started'), num_labels)
+    print list(df.columns)
+    y, name = categorize_by_level_num(y, num_labels)
 
-    df = drop_unused_labels(df)
     df = dummify_with_countries(df)
     #df = dummify_no_countries(df)
 
@@ -233,7 +268,7 @@ if __name__ == '__main__':
     # print "\nThe model makes {} predictions and the sum of predictions is {}".format(y_pred.shape[0], y_pred.sum())
 
     ''' Random Forest'''
-    y_pred = model_random_forest(X_train, y_train, name)
+    y_pred = model_random_forest(X_train, y_train, name, X_test, y_test)
 
     '''Random Model'''
     # compare_with_random_model(X_train_scaled, y_train)
@@ -241,72 +276,18 @@ if __name__ == '__main__':
     '''*** Results *** '''
     '''
     using campaigns, 4
-    The Multinomial logistic regression modeled categories by campaign with 4 classes yielded a model with:
-	accuracy = 0.554455679456
-	F1 score for each class = [ 0.7538172   0.06045137  0.25324543  0.04923077]
-	F1 score, macro = 0.279186192289
-	F1 score, weighted 0.62181023731
 
-    The Multinomial logistic regression modeled random feature with 4 classes yielded a model with:
-	accuracy = 0.604965979966
-	F1 score for each class = [ 0.73497562  0.          0.25563354  0.        ]
-	F1 score, macro = 0.247652291442
-	F1 score, weighted 0.607271420649
     '''
     '''
     using num levels, 4
-    The Multinomial logistic regression modeled categories by level with 4 classes yielded a model with:
-	accuracy = 0.541461916462
-	F1 score for each class = [ 0.73179918  0.37261799  0.09355247  0.05900846]
-	F1 score, macro = 0.314244524829
-	F1 score, weighted 0.570875200075
-
-    The Multinomial logistic regression modeled random feature with 4 classes yielded a model with:
-	accuracy = 0.174447174447
-	F1 score for each class = [ 0.          0.41377939  0.          0.00800518]
-	F1 score, macro = 0.105446142113
-	F1 score, weighted 0.170672602754
 
     '''
     '''
     using campaigns, 2
-    The Multinomial logistic regression modeled categories by campaign with 2 classes yielded a model with:
-	accuracy = 0.683779058779 ********** best model
-	F1 score for each class = [ 0.76560721  0.51417371]
-	F1 score, macro = 0.639890464491
-	F1 score, weighted 0.701204407814
-
-    The Multinomial logistic regression modeled random feature with 2 classes yielded a model with:
-	accuracy = 0.50025987526
-	F1 score for each class = [ 0.59830228  0.33890677]
-	F1 score, macro = 0.46860452851
-	F1 score, weighted 0.531860067984
     '''
     '''
     using levels, 2
-    The Multinomial logistic regression modeled categories by level with 2 classes yielded a model with:
-	accuracy = 0.685031185031
-	F1 score for each class = [ 0.79217459  0.34984882]
-	F1 score, macro = 0.571011707769
-	F1 score, weighted 0.748587821518
-
-    The Multinomial logistic regression modeled random feature with 2 classes yielded a model with:
-	accuracy = 0.90146002646
-	F1 score for each class = [ 0.94817668  0.        ]
-	F1 score, macro = 0.474088339442
-	F1 score, weighted 0.854743374036
     '''
     '''
     using 3 campaigns
-    The Multinomial logistic regression modeled categories by campaign with 3 classes yielded a model with:
-	accuracy = 0.587507087507
-	F1 score for each class = [ 0.76140716  0.09494192  0.3258348 ]
-	F1 score, macro = 0.394061293252
-	F1 score, weighted 0.644919767417
-
-    The Multinomial logistic regression modeled random feature with 3 classes yielded a model with:
-	accuracy = 0.402853902854
-	F1 score for each class = [ 0.61799692  0.03861153  0.        ]
-	F1 score, macro = 0.218869481722
-	F1 score, weighted 0.46019777515
     '''

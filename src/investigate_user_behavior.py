@@ -14,6 +14,18 @@ def read_files(path):
     return (df_users, df_levels, df_events)
 
 
+def get_campaign_freq(df_levels):
+    campaigns = pd.read_csv('../../data/campaign_list.csv')
+    campaigns = campaigns.rename(index=str, columns={
+                                 'Campaign': 'last_campaign_started', 'Level': 'level_name'})
+    df_levels_freq = pd.DataFrame(
+        data=df_levels['Level'].value_counts())
+    df_levels_freq['level_name'] = df_levels_freq.index
+    df_levels_freq = pd.merge(
+        df_levels_freq, campaigns, how='left', on='level_name')
+    return df_levels_freq
+
+
 if __name__ == '__main__':
     sample_path = '../../data/sample/'
     august_path = '../../data/august/'
@@ -22,6 +34,7 @@ if __name__ == '__main__':
     path = march_path
     df_users, df_levels, df_events = read_files(path)
 
+    df_levels_freq = get_campaign_freq(df_levels)
     # random selection of users: #42222 #4222 # 42
     # a few users with more than 20 levels: 19, 38, 39, 212
     user = 19
