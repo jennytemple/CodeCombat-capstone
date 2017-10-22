@@ -227,7 +227,7 @@ def model_random_forest(X_train, y_train, name, X_test, y_test):
     return "test"
 
 
-def compare_with_random_model(orig_X, y_train):
+def compare_with_random_mlr_model(orig_X, y_train):
     X = random_feature(orig_X)
     rando_pred = model_multi_log_reg(X, y_train, "random feature")
 
@@ -271,7 +271,12 @@ if __name__ == '__main__':
     y_pred = model_random_forest(X_train, y_train, name, X_test, y_test)
 
     '''Random Model'''
-    # compare_with_random_model(X_train_scaled, y_train)
+    # compare_with_random_mlr_model(X_train_scaled, y_train)
+    print "\nRandom Model"
+    random_X_train = random_feature(X_train)
+    random_X_test = random_feature(X_test)
+    random_y_pred = model_random_forest(
+        random_X_train, y_train, name, random_X_test, y_test)
 
     '''*** Results *** '''
     '''
