@@ -34,9 +34,12 @@ def categorize_by_level_num(level_nums, num_cats):
         # 1st bin: x s.t. value0 <= x < value1
         bins = np.array([0, 12, 999])
         print bins
+    if num_cats == 3:
+        # levels 20 to 21 is a pretty big drop off
+        bins = np.array([0, 12, 21, 999])
     if num_cats == 4:
         # levels 20 to 21 is a pretty big drop off
-        bins = np.array([0, 12, 21, 100, 999])
+        bins = np.array([0, 12, 30, 100, 999])
 
     y = np.digitize(level_nums, bins)
     return y, name
@@ -247,10 +250,12 @@ if __name__ == '__main__':
     df = filter_missing(df)
 
     target = 'Levels Completed'
+    #target = 'last_campaign_started'
+    num_labels = 3
     df, y = fix_target_and_drop_target_fields(df, target)
-    num_labels = 2
     print list(df.columns)
     y, name = categorize_by_level_num(y, num_labels)
+    #y, name = categorize_by_campaign(y, num_labels)
 
     df = dummify_with_countries(df)
     #df = dummify_no_countries(df)
