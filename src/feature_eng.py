@@ -218,6 +218,7 @@ def add_group_completion_num(df_users, df_events, level_group, name):
 def add_number_special_activities(df_users, df_events, event_type, date_field, ref_field, new_field_name, use_events=True):
     '''count the number of times per user a specific event type occured within a time frame defined earlier and add it to the users df '''
     '''primarily built for event dataframe events, but also handles practice field in the level data frame'''
+    '''Note: most special events are not tied to a particular level, so time frame has to be used instead of level '''
     if use_events:
         df_events_special = df_events[df_events['Event Name'] == event_type]
     else:
@@ -252,7 +253,8 @@ def add_number_special_activities(df_users, df_events, event_type, date_field, r
 
 
 def fill_out_age(df_users):
-    df_users['How old are you?'] = df_users['How old are you?'].fillna('other')
+    df_users['How old are you?'] = df_users['How old are you?'].fillna(
+        'other_age')
     return df_users
 
 
@@ -281,17 +283,67 @@ def aggregate_small_pop_countries(df_users, n=300):
     countries_included = countries[countries['Country'] > n]
     include = list(countries_included.index)
     df_users['Country'] = df_users.apply(
-        lambda row: row['Country'] if row['Country'] in include else "other", axis=1)
-    import pdb
-    pdb.set_trace()
+        lambda row: row['Country'] if row['Country'] in include else "other_country", axis=1)
+
     return df_users
 
 
-def add_coding_language(df_users, df_levels):
-    '''IN PROGRESS'''
-    language_counts = df_levels.groupby(
-        ['Code Language', 'User Id']).size().reset_index(name='counter')
-    pass
+def add_coding_language(df_users, df_levels, level_group, num_levels_col):
+    '''Note: final column added may be greater than 1.0. Some levels are "completed" without seeing victory. Look into "the-raised-sword" to see detail'''
+    df_user_num_levels = df_users[['Id', num_levels_col]]
+
+    # include only completed levels
+    df_levels = df_levels[df_levels['Date Completed'].notnull()]
+    df_levels = df_levels[df_levels['Level'].isin(
+        level_group)]  # include only levels in list
+
+    languages = list(df_levels['Code Language'].unique())
+    for l in languages:
+        df_levels_l = df_levels[df_levels['Code Language'] == l]  # filter
+        df_levels_l = df_levels_l[['User Id', 'Code Language']].groupby(
+            'User Id').count()
+        df_levels_l['Id'] = df_levels_l.index
+        df_levels_l = pd.merge(
+            df_levels_l, df_user_num_levels, how='left', on='Id')
+        df_levels_l[l + '_in_first_six'] = df_levels_l['Code Language'] / \
+            df_levels_l[num_levels_col]
+        df_levels_l.drop(['Code Language', num_levels_col],
+                         axis=1, inplace=True)
+        df_users = pd.merge(df_users, df_levels_l, how='left', on='Id')
+        df_users[l + '_in_first_six'] = df_users[l + '_in_first_six'].fillna(0)
+
+    return df_users
+
+
+def add_number_logins(df_users, df_events, max_date_col, time_threshold_hours=1.0):
+    '''for each user, and each event, add time between events, filter on max date, and count the number of events over a certain time '''
+    # filter dates
+    df_users_max_dates = df_users[['Id', max_date_col]]
+    df_users_max_dates = df_users_max_dates.rename(
+        index=str, columns={'Id': 'User Id'})
+    df_events = pd.merge(df_events, df_users_max_dates,
+                         how='left', on='User Id')
+    df_events = df_events[df_events['Created'] <= df_events[max_date_col]]
+
+    # get time between events in hours
+    df_events = df_events.sort_values(
+        'Created')  # data set appears to be sorted by time already, but repeat in case that assumption is incorrect
+    df_events['shifted'] = df_events.groupby('User Id')['Created'].shift(1)
+    df_events['lag'] = df_events['shifted'] - df_events['Created']
+    df_events['lag_days'] = (df_events['Created'] -
+                             df_events['Created'].shift()).dt.days
+    df_events['lag_secs'] = (df_events['Created'] -
+                             df_events['Created'].shift()).dt.seconds
+    df_events['lag_hours'] = (df_events['lag_days'] * 24.0) + \
+        (df_events['lag_secs'] / 60 / 60)
+
+    # get number of events exceeding time threshold
+    df_events = df_events[df_events['lag_hours'] >= time_threshold_hours]
+    df_logins = df_events[['User Id', 'lag_hours']].groupby('User Id').count()
+    df_logins['Id'] = df_logins.index
+
+    df_users = pd.merge(df_users, df_logins, how='left', on='Id')
+    return df_users
 
 
 if __name__ == '__main__':
@@ -354,6 +406,10 @@ if __name__ == '__main__':
         df_users, df_events, 'Show problem alert', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'show_problem_alerts_first_six')
     df_users = add_number_special_activities(
         df_users, df_levels, 'Practice', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'practice_levels_first_six', use_events=False)
+    df_users = add_coding_language(
+        df_users, df_levels, first_six_data, 'num_levels_completed_in_first_six')
+    df_users = add_number_logins(
+        df_users, df_events, 'date_completed_first_six', time_threshold_hours=1.0)
 
     added_modeling_fields = set(df_users.columns) - orig_fields - \
         added_eda_only_fields - added_target_fields

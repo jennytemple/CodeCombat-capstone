@@ -227,7 +227,18 @@ def model_random_forest(X_train, y_train, name, X_test, y_test):
     y_predict = rand_forest.predict(X_test)
     print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_test, y_predict)
-    return "test"
+    return rand_forest.feature_importances_
+
+
+def rank_features(cols, coefs):
+    cols = np.array(cols)
+    cols = cols.reshape(cols.shape[0], 1)
+    coefs = np.around(coefs, decimals=4)
+    coefs = coefs.reshape(coefs.shape[0], 1)
+    abs_coefs = np.abs(coefs)
+
+    results = np.concatenate((coefs, cols, abs_coefs), axis=1)
+    return results[np.argsort(results[:, 2])]
 
 
 def compare_with_random_mlr_model(orig_X, y_train):
@@ -259,6 +270,7 @@ if __name__ == '__main__':
 
     df = dummify_with_countries(df)
     #df = dummify_no_countries(df)
+    features = list(df.columns)
 
     X = df.values
     # X = extreme_filter(X).values
@@ -273,7 +285,10 @@ if __name__ == '__main__':
     # print "\nThe model makes {} predictions and the sum of predictions is {}".format(y_pred.shape[0], y_pred.sum())
 
     ''' Random Forest'''
-    y_pred = model_random_forest(X_train, y_train, name, X_test, y_test)
+    rf_feature_importance = model_random_forest(
+        X_train, y_train, name, X_test, y_test)
+    rf_feature_importance = rank_features(features, rf_feature_importance)
+    print rf_feature_importance
 
     '''Random Model'''
     # compare_with_random_mlr_model(X_train_scaled, y_train)
