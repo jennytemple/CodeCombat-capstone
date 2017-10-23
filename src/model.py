@@ -32,14 +32,15 @@ def categorize_by_level_num(level_nums, num_cats):
     name = "categories by level"
     if num_cats == 2:
         # 1st bin: x s.t. value0 <= x < value1
-        bins = np.array([0, 12, 999])
+        # first most common 12 levels are in dungeon campaign
+        bins = np.array([0, 13, 999])
         print bins
     if num_cats == 3:
         # levels 20 to 21 is a pretty big drop off
-        bins = np.array([0, 12, 21, 999])
+        bins = np.array([0, 13, 21, 999])
     if num_cats == 4:
         # levels 20 to 21 is a pretty big drop off
-        bins = np.array([0, 12, 30, 100, 999])
+        bins = np.array([0, 13, 30, 100, 999])
 
     y = np.digitize(level_nums, bins)
     return y, name
@@ -81,7 +82,8 @@ def categorize_by_campaign(y, num_cats):
 
 def drop_unmodeled_fields(df):
 
-    dates = ['date_completed_first_six', 'Date Joined']
+    dates = ['date_completed_first_six',
+             'Date Joined', 'date_started_first_six']
     target_leakage = ['num_levels_completed_in_first_six']
     eda_only_fields = ['last_event_date',
                        'avg_num_days_per_level',

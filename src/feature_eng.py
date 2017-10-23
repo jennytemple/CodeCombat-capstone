@@ -179,7 +179,29 @@ def add_last_campaign_started(df_users):
     return df_users
 
 
-def add_group_completion_date(df_users, df_events, level_group, name):
+'''
+May be replaced by add_group_starte_and_complete_date
+'''
+# def add_group_completion_date(df_users, df_events, level_group, name):
+#     # filter events for level completions of groups
+#     df_events_group = df_events[df_events['Level'].isin(level_group)]
+#     df_events_group = df_events_group[df_events_group['Event Name']
+#                                       == 'Saw Victory']
+#
+#     # take max date and add to dataframe
+#     df_events_group_max = df_events_group[[
+#         'User Id', 'Created']].groupby('User Id').max()
+#     df_events_group_max['Id'] = df_events_group_max.index
+#     df_events_group_max['date_completed_' +
+#                         name] = pd.to_datetime(df_events_group_max['Created'])
+#     df_events_group_max.drop(['Created'], axis=1, inplace=True)
+#
+#     # merge on user data
+#     df_users = pd.merge(df_users, df_events_group_max, how='left', on='Id')
+#     return df_users
+
+
+def add_group_start_and_complete_date(df_users, df_events, level_group, name):
     # filter events for level completions of groups
     df_events_group = df_events[df_events['Level'].isin(level_group)]
     df_events_group = df_events_group[df_events_group['Event Name']
@@ -192,9 +214,17 @@ def add_group_completion_date(df_users, df_events, level_group, name):
     df_events_group_max['date_completed_' +
                         name] = pd.to_datetime(df_events_group_max['Created'])
     df_events_group_max.drop(['Created'], axis=1, inplace=True)
-
-    # merge on user data
     df_users = pd.merge(df_users, df_events_group_max, how='left', on='Id')
+
+    # take min date and add to dataframe
+    df_events_group_min = df_events_group[[
+        'User Id', 'Created']].groupby('User Id').min()
+    df_events_group_min['Id'] = df_events_group_min.index
+    df_events_group_min['date_started_' +
+                        name] = pd.to_datetime(df_events_group_min['Created'])
+    df_events_group_min.drop(['Created'], axis=1, inplace=True)
+    # merge on user data
+    df_users = pd.merge(df_users, df_events_group_min, how='left', on='Id')
     return df_users
 
 
@@ -215,7 +245,7 @@ def add_group_completion_num(df_users, df_events, level_group, name):
     return df_users
 
 
-def add_number_special_activities(df_users, df_events, event_type, date_field, ref_field, new_field_name, use_events=True):
+def add_number_special_activities(df_users, df_events, event_type, earliest_date_field, latest_date_field, ref_field, new_field_name, use_events=True):
     '''count the number of times per user a specific event type occured within a time frame defined earlier and add it to the users df '''
     '''primarily built for event dataframe events, but also handles practice field in the level data frame'''
     '''Note: most special events are not tied to a particular level, so time frame has to be used instead of level '''
@@ -226,12 +256,15 @@ def add_number_special_activities(df_users, df_events, event_type, date_field, r
 
     df_events_special = df_events_special.rename(
         index=str, columns={'User Id': 'Id', 'Created': 'event_date'})
-    df_users_max_dates = df_users[['Id', date_field]]
+    df_users_max_dates = df_users[[
+        'Id', earliest_date_field, latest_date_field]]
 
     df_events_special = pd.merge(
         df_events_special, df_users_max_dates, how='left', on='Id')
-    df_events_special = df_events_special[df_events_special['event_date']
-                                          <= df_events_special[date_field]]
+    df_events_special = df_events_special[(df_events_special['event_date'] >=
+                                           df_events_special[earliest_date_field]) &
+                                          (df_events_special['event_date'] <= df_events_special[latest_date_field])]
+
     event_count = df_events_special.groupby('Id').count()
     if use_events:
         event_count = event_count.rename(
@@ -315,15 +348,16 @@ def add_coding_language(df_users, df_levels, level_group, num_levels_col):
     return df_users
 
 
-def add_number_logins(df_users, df_events, max_date_col, time_threshold_hours=1.0):
+def add_number_logins(df_users, df_events, name, min_date_col, max_date_col, time_threshold_hours=1.0):
     '''for each user, and each event, add time between events, filter on max date, and count the number of events over a certain time '''
     # filter dates
-    df_users_max_dates = df_users[['Id', max_date_col]]
+    df_users_max_dates = df_users[['Id', min_date_col, max_date_col]]
     df_users_max_dates = df_users_max_dates.rename(
         index=str, columns={'Id': 'User Id'})
     df_events = pd.merge(df_events, df_users_max_dates,
                          how='left', on='User Id')
-    df_events = df_events[df_events['Created'] <= df_events[max_date_col]]
+    df_events = df_events[(df_events['Created'] >= df_events[min_date_col]) &
+                          (df_events['Created'] <= df_events[max_date_col])]
 
     # get time between events in hours
     df_events = df_events.sort_values(
@@ -343,6 +377,8 @@ def add_number_logins(df_users, df_events, max_date_col, time_threshold_hours=1.
     df_logins['Id'] = df_logins.index
 
     df_users = pd.merge(df_users, df_logins, how='left', on='Id')
+    df_users['logins_' + name] = df_users['lag_hours'].fillna(0)
+    df_users.drop('lag_hours', axis=1, inplace=True)
     return df_users
 
 
@@ -389,39 +425,41 @@ if __name__ == '__main__':
     # add average time to play and average days for teh first six levels
     first_six_data = ['dungeons-of-kithgard', 'gems-in-the-deep',
                       'shadow-guard', 'true-names', 'the-raised-sword', 'fire-dancing']
-    df_users = add_group_completion_date(
+    df_users = add_group_start_and_complete_date(
         df_users, df_events, first_six_data, "first_six")
     df_users = add_group_completion_num(
         df_users, df_events, first_six_data, "first_six")
 
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hint Used', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hint_used_first_six')
+        df_users, df_events, 'Hint Used', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hint_used_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_clicked_first_six')
+        df_users, df_events, 'Hints Clicked', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_clicked_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Next Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_next_clicked_first_six')
+        df_users, df_events, 'Hints Next Clicked', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_next_clicked_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Started Level', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_started_level_first_six')
+        df_users, df_events, 'Started Level', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_started_level_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Show problem alert', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_show_problem_alerts_first_six')
+        df_users, df_events, 'Show problem alert', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_show_problem_alerts_first_six')
     df_users = add_number_special_activities(
-        df_users, df_levels, 'Practice', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_practice_levels_first_six', use_events=False)
+        df_users, df_levels, 'Practice', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_practice_levels_first_six', use_events=False)
     df_users = add_coding_language(
         df_users, df_levels, first_six_data, 'num_levels_completed_in_first_six')
     df_users = add_number_logins(
-        df_users, df_events, 'date_completed_first_six', time_threshold_hours=1.0)
+        df_users, df_events, 'first_six', 'date_started_first_six', 'date_completed_first_six', time_threshold_hours=1.0)
+
+    # levels 7 through 12
+    rest_of_dungeon_campaign = ['the-second-kithmaze', 'known-enemy',
+                                'master-of-names', 'a-mayhem-of-munchkins', 'the-final-kithmaze', 'kithgard-gates']
 
     added_modeling_fields = set(df_users.columns) - orig_fields - \
         added_eda_only_fields - added_target_fields
 
     # for testing. Maybe for EDA...
     # all_levels = list(df_levels['Level'].unique())
-    # df_users = add_group_completion_date(
+    # df_users = add_group_start_and_complete_date(
     #     df_users, df_events, all_levels, "all")
-    # df_users = add_group_completion_num(
-    #     df_users, df_events, all_levels, "all")
-    # df_users = add_number_special_activities(
-    #     df_users, df_levels, 'Practice', 'date_completed_all', 'num_levels_completed_in_all', 'practice_levels_all', use_events=False)
+    # df_users = add_number_logins(
+    #     df_users, df_events, 'all_levels', 'date_started_all', 'date_completed_all', time_threshold_hours=1.0)
 
     # write out csv file for later use
     df_users.to_csv(path + 'post_processed_users.csv')
