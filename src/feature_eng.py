@@ -395,17 +395,17 @@ if __name__ == '__main__':
         df_users, df_events, first_six_data, "first_six")
 
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hint Used', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'hint_used_first_six')
+        df_users, df_events, 'Hint Used', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hint_used_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'hints_clicked_first_six')
+        df_users, df_events, 'Hints Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_clicked_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Next Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'hints_next_clicked_first_six')
+        df_users, df_events, 'Hints Next Clicked', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_next_clicked_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Started Level', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'started_level_first_six')
+        df_users, df_events, 'Started Level', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_started_level_first_six')
     df_users = add_number_special_activities(
-        df_users, df_events, 'Show problem alert', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'show_problem_alerts_first_six')
+        df_users, df_events, 'Show problem alert', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_show_problem_alerts_first_six')
     df_users = add_number_special_activities(
-        df_users, df_levels, 'Practice', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'practice_levels_first_six', use_events=False)
+        df_users, df_levels, 'Practice', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_practice_levels_first_six', use_events=False)
     df_users = add_coding_language(
         df_users, df_levels, first_six_data, 'num_levels_completed_in_first_six')
     df_users = add_number_logins(
@@ -427,10 +427,10 @@ if __name__ == '__main__':
     df_users.to_csv(path + 'post_processed_users.csv')
 
     print "Orig fields are:"
-    print orig_fields
+    print list(orig_fields)
     print "Fields added for EDA are:"
-    print added_eda_only_fields
+    print list(added_eda_only_fields)
     print "Fields added for target are:"
-    print added_target_fields
+    print list(added_target_fields)
     print "Fields added for modeling are:"
-    print added_modeling_fields
+    print list(added_modeling_fields)

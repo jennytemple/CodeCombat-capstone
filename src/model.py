@@ -82,6 +82,7 @@ def categorize_by_campaign(y, num_cats):
 def drop_unmodeled_fields(df):
 
     dates = ['date_completed_first_six', 'Date Joined']
+    target_leakage = ['num_levels_completed_in_first_six']
     eda_only_fields = ['last_event_date',
                        'avg_num_days_per_level',
                        'last_action',
@@ -115,6 +116,7 @@ def drop_unmodeled_fields(df):
     not_useful = ['Id', 'Unnamed: 0']
 
     df.drop(dates, axis=1, inplace=True)
+    df.drop(target_leakage, axis=1, inplace=True)
     df.drop(eda_only_fields, axis=1, inplace=True)
     df.drop(too_sparse, axis=1, inplace=True)
     df.drop(not_useful, axis=1, inplace=True)
@@ -141,25 +143,17 @@ def dummify_with_countries(X):
     countries = pd.get_dummies(X['Country'])
     X[countries.columns] = countries
 
-    # languages = pd.get_dummies(X['Code Language'])
-    # X[languages.columns] = languages
-
     ages = pd.get_dummies(X['How old are you?'])
     X[ages.columns] = ages
 
-    # X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
     X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
     return X
 
 
 def dummify_no_countries(X):
-    # languages = pd.get_dummies(X['Code Language'])
-    # X[languages.columns] = languages
-
     ages = pd.get_dummies(X['How old are you?'])
     X[ages.columns] = ages
 
-    # X.drop(['Country', 'Code Language', 'How old are you?'], axis=1, inplace=True)
     X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
     return X
 
@@ -191,7 +185,7 @@ def print_scores(y_true, y_pred):
     print "\tF1 score for each class = {} \n\tF1 score, micro = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(f1_score_none, f1_score_micro, f1_score_macro, f1_score_weighted)
 
 
-def model_multi_log_reg(X_train_scaled, y_train, name):
+def model_multi_log_reg(X_train_scaled, y_train, name, X_test, y_test):
     '''
     Model with a multinomial logistic regression and print results
     '''
@@ -200,15 +194,17 @@ def model_multi_log_reg(X_train_scaled, y_train, name):
         multi_class='multinomial', solver='sag', max_iter=1000, class_weight='balanced')
     multi_lr.fit(X_train_scaled, y_train)
 
-    # multi_lr_acc = multi_lr.score(X_train_scaled, y_train)
-
+    print "On TRAIN data:"
     y_predict = multi_lr.predict(X_train_scaled)
-
     print "\nThe Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_train, y_predict)
 
-    return y_predict
-    #multi_lr.score(scaler.transform(X_test), y_test)
+    print "On TEST data:"
+    y_predict = multi_lr.predict(X_test)
+    print "\nThe Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_test, y_predict)
+
+    return multi_lr.coef_
 
 
 def model_random_forest(X_train, y_train, name, X_test, y_test):
@@ -227,6 +223,7 @@ def model_random_forest(X_train, y_train, name, X_test, y_test):
     y_predict = rand_forest.predict(X_test)
     print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_test, y_predict)
+
     return rand_forest.feature_importances_
 
 
@@ -234,6 +231,7 @@ def rank_features(cols, coefs):
     cols = np.array(cols)
     cols = cols.reshape(cols.shape[0], 1)
     coefs = np.around(coefs, decimals=4)
+    coefs = coefs.reshape(cols.shape[0], 1)
     coefs = coefs.reshape(coefs.shape[0], 1)
     abs_coefs = np.abs(coefs)
 
@@ -262,7 +260,7 @@ if __name__ == '__main__':
 
     target = 'Levels Completed'
     #target = 'last_campaign_started'
-    num_labels = 3
+    num_labels = 2
     df, y = fix_target_and_drop_target_fields(df, target)
     print list(df.columns)
     y, name = categorize_by_level_num(y, num_labels)
@@ -278,17 +276,22 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
     ''' Multinomial Logistic Regression '''
-    # scaler = StandardScaler().fit(X_train)
-    # X_train_scaled = scaler.transform(X_train)
-    #
-    # y_pred = model_multi_log_reg(X_train_scaled, y_train, name)
-    # print "\nThe model makes {} predictions and the sum of predictions is {}".format(y_pred.shape[0], y_pred.sum())
+    scaler = StandardScaler().fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+
+    mlr_feature_importance = model_multi_log_reg(
+        X_train_scaled, y_train, name, X_test, y_test)
+    mlr_feature_importance_readable = rank_features(
+        features, mlr_feature_importance)[::-1]
+    print mlr_feature_importance_readable
 
     ''' Random Forest'''
     rf_feature_importance = model_random_forest(
         X_train, y_train, name, X_test, y_test)
-    rf_feature_importance = rank_features(features, rf_feature_importance)
-    print rf_feature_importance
+
+    rf_feature_importance_readable = rank_features(
+        features, rf_feature_importance)[::-1]
+    print rf_feature_importance_readable
 
     '''Random Model'''
     # compare_with_random_mlr_model(X_train_scaled, y_train)
