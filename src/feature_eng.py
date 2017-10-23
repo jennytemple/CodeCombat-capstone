@@ -274,6 +274,19 @@ def add_english_speaking(df_users):
     return df_users
 
 
+def aggregate_small_pop_countries(df_users, n=300):
+    '''Lump countries with fewer than n users registering in data set as "other"
+        note: choosing 300 for the March sample results in  5% of the population in the in "other"'''
+    countries = pd.DataFrame(df_users['Country'].value_counts())
+    countries_included = countries[countries['Country'] > n]
+    include = list(countries_included.index)
+    df_users['Country'] = df_users.apply(
+        lambda row: row['Country'] if row['Country'] in include else "other", axis=1)
+    import pdb
+    pdb.set_trace()
+    return df_users
+
+
 def add_coding_language(df_users, df_levels):
     '''IN PROGRESS'''
     language_counts = df_levels.groupby(
@@ -319,6 +332,7 @@ if __name__ == '__main__':
     df_users = fill_out_age(df_users)
     # df_users = add_country_group(df_users)
     df_users = add_english_speaking(df_users)
+    df_users = aggregate_small_pop_countries(df_users, n=300)
 
     # add average time to play and average days for teh first six levels
     first_six_data = ['dungeons-of-kithgard', 'gems-in-the-deep',
@@ -364,4 +378,3 @@ if __name__ == '__main__':
     print added_target_fields
     print "Fields added for modeling are:"
     print added_modeling_fields
-    print "cool"
