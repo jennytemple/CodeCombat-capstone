@@ -363,11 +363,9 @@ def add_number_logins(df_users, df_events, name, min_date_col, max_date_col, tim
     df_events = df_events.sort_values(
         'Created')  # data set appears to be sorted by time already, but repeat in case that assumption is incorrect
     df_events['shifted'] = df_events.groupby('User Id')['Created'].shift(1)
-    df_events['lag'] = df_events['shifted'] - df_events['Created']
-    df_events['lag_days'] = (df_events['Created'] -
-                             df_events['Created'].shift()).dt.days
-    df_events['lag_secs'] = (df_events['Created'] -
-                             df_events['Created'].shift()).dt.seconds
+    df_events['lag'] = df_events['Created'] - df_events['shifted']
+    df_events['lag_days'] = df_events['lag'].dt.days
+    df_events['lag_secs'] = df_events['lag'].dt.seconds
     df_events['lag_hours'] = (df_events['lag_days'] * 24.0) + \
         (df_events['lag_secs'] / 60 / 60)
 
@@ -455,11 +453,11 @@ if __name__ == '__main__':
         added_eda_only_fields - added_target_fields
 
     # for testing. Maybe for EDA...
-    # all_levels = list(df_levels['Level'].unique())
-    # df_users = add_group_start_and_complete_date(
-    #     df_users, df_events, all_levels, "all")
-    # df_users = add_number_logins(
-    #     df_users, df_events, 'all_levels', 'date_started_all', 'date_completed_all', time_threshold_hours=1.0)
+    all_levels = list(df_levels['Level'].unique())
+    df_users = add_group_start_and_complete_date(
+        df_users, df_events, all_levels, "all")
+    df_users = add_number_logins(
+        df_users, df_events, 'all_levels', 'date_started_all', 'date_completed_all', time_threshold_hours=1.0)
 
     # write out csv file for later use
     df_users.to_csv(path + 'post_processed_users.csv')
