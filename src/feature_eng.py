@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from investigate_user_behavior import get_campaign_freq, unpaid_users_over_level
 
 
 def read_files(path):
@@ -380,6 +381,28 @@ def add_number_logins(df_users, df_events, name, min_date_col, max_date_col, tim
     return df_users
 
 
+def chunk_up_dataset(df_users, df_levels, chunk_size=10, num_levels=400):
+    df_unpaid = unpaid_users_over_level(
+        df_users, df_levels, n=12)
+    unpaid_level_freq = get_campaign_freq(df_unpaid)
+    # create chunks of levels to gather data on
+    d = {}
+    # these first chunks are unusual sizes based on when users generally start playing new campaigns
+    d['12_pre_forest'] = list(
+        unpaid_level_freq['level_name'][0:12])  # first 12 levels
+    d['24'] = list(unpaid_level_freq['level_name'][12:24])
+    d['36'] = list(unpaid_level_freq['level_name'][24:36])
+    d['48'] = list(unpaid_level_freq['level_name'][36:48])
+    d['59_pre_desert'] = list(unpaid_level_freq['level_name'][48:59])
+    d['70'] = list(unpaid_level_freq['level_name'][59:70])
+
+    # the rest of the chunks can be in a standard size
+    for l in xrange(70 + chunk_size, num_levels, chunk_size):
+        d[str(l)] = list(unpaid_level_freq['level_name'][l - chunk_size:l])
+
+    return d
+
+
 if __name__ == '__main__':
     sample_path = '../../data/sample/'
     august_path = '../../data/august/'
@@ -421,29 +444,30 @@ if __name__ == '__main__':
     df_users = aggregate_small_pop_countries(df_users, n=300)
 
     # add average time to play and average days for teh first six levels
-    first_six_data = ['dungeons-of-kithgard', 'gems-in-the-deep',
-                      'shadow-guard', 'true-names', 'the-raised-sword', 'fire-dancing']
+    first_six = ['dungeons-of-kithgard', 'gems-in-the-deep',
+                 'shadow-guard', 'true-names', 'the-raised-sword', 'fire-dancing']
+    name = "first_six"
     df_users = add_group_start_and_complete_date(
-        df_users, df_events, first_six_data, "first_six")
+        df_users, df_events, first_six, name)
     df_users = add_group_completion_num(
-        df_users, df_events, first_six_data, "first_six")
+        df_users, df_events, first_six, name)
 
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hint Used', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hint_used_first_six')
+        df_users, df_events, 'Hint Used', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_hint_used_' + name)
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Clicked', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_clicked_first_six')
+        df_users, df_events, 'Hints Clicked', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_hints_clicked_' + name)
     df_users = add_number_special_activities(
-        df_users, df_events, 'Hints Next Clicked', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_hints_next_clicked_first_six')
+        df_users, df_events, 'Hints Next Clicked', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_hints_next_clicked_' + name)
     df_users = add_number_special_activities(
-        df_users, df_events, 'Started Level', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_started_level_first_six')
+        df_users, df_events, 'Started Level', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_started_level_' + name)
     df_users = add_number_special_activities(
-        df_users, df_events, 'Show problem alert', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_show_problem_alerts_first_six')
+        df_users, df_events, 'Show problem alert', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_show_problem_alerts_' + name)
     df_users = add_number_special_activities(
-        df_users, df_levels, 'Practice', 'date_started_first_six', 'date_completed_first_six', 'num_levels_completed_in_first_six', 'rate_practice_levels_first_six', use_events=False)
+        df_users, df_levels, 'Practice', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_practice_levels_' + name, use_events=False)
     df_users = add_coding_language(
-        df_users, df_levels, first_six_data, 'num_levels_completed_in_first_six')
+        df_users, df_levels, first_six, 'num_levels_completed_in_' + name)
     df_users = add_number_logins(
-        df_users, df_events, 'first_six', 'date_started_first_six', 'date_completed_first_six', time_threshold_hours=1.0)
+        df_users, df_events, 'first_six', 'date_started_' + name, 'date_completed_' + name, time_threshold_hours=1.0)
 
     # levels 7 through 12
     rest_of_dungeon_campaign = ['the-second-kithmaze', 'known-enemy',
@@ -452,13 +476,17 @@ if __name__ == '__main__':
     added_modeling_fields = set(df_users.columns) - orig_fields - \
         added_eda_only_fields - added_target_fields
 
-    # for testing. Maybe for EDA...
-    all_levels = list(df_levels['Level'].unique())
-    df_users = add_group_start_and_complete_date(
-        df_users, df_events, all_levels, "all")
-    df_users = add_number_logins(
-        df_users, df_events, 'all_levels', 'date_started_all', 'date_completed_all', time_threshold_hours=1.0)
+    # filter, add features, write to dataset for each model
+    #df_users, df_levels, df_events, group, group_name,
 
+    # for testing. Maybe for EDA...
+    # all_levels = list(df_levels['Level'].unique())
+    # df_users = add_group_start_and_complete_date(
+    #     df_users, df_events, all_levels, "all")
+    # df_users = add_number_logins(
+    #     df_users, df_events, 'all_levels', 'date_started_all', 'date_completed_all', time_threshold_hours=1.0)
+
+    d = chunk_up_dataset(df_users, df_levels, chunk_size=10)
     # write out csv file for later use
     df_users.to_csv(path + 'post_processed_users.csv')
 

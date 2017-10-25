@@ -261,12 +261,12 @@ if __name__ == '__main__':
     df = filter_missing(df)
 
     target = 'Levels Completed'
-    #target = 'last_campaign_started'
+    # target = 'last_campaign_started'
     num_labels = 2
     df, y = fix_target_and_drop_target_fields(df, target)
     print list(df.columns)
     y, name = categorize_by_level_num(y, num_labels)
-    #y, name = categorize_by_campaign(y, num_labels)
+    # y, name = categorize_by_campaign(y, num_labels)
 
     df = dummify_with_countries(df)
     #df = dummify_no_countries(df)
