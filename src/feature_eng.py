@@ -92,7 +92,7 @@ def add_last_play_info(df_users, df_events):
     df_last_event = df_last_event[df_last_event['Created_x']
                                   == df_last_event['Created_y']]
     # drop unnecessaryfields
-    df_last_event.drop(['Created_y'], axis=1, inplace=True)
+    df_last_event.drop(['Created_y', 'level_num'], axis=1, inplace=True)
 
     # dedup
     df_last_event = df_last_event.drop_duplicates()
@@ -142,7 +142,7 @@ def add_last_level_completion_info(df_users, df_levels):
     df_last_level['last_level_was_completed'] = df_last_level['Date Completed'] > 0
     # drop unnecesary fields
     df_last_level.drop(
-        ['Created_y', 'Created_x', 'Date Completed', 'Code Language'], axis=1, inplace=True)
+        ['Created_y', 'Created_x', 'Date Completed', 'Code Language', 'level_num'], axis=1, inplace=True)
     # rename columns
     df_last_level = df_last_level.rename(
         index=str, columns={'User Id': 'Id', 'Playtime (s)': 'last_level_time_s', 'Practice': 'last_level_was_practice', 'Level': 'last_level_played'})
@@ -314,13 +314,72 @@ def add_english_speaking(df_users):
 def aggregate_small_pop_countries(df_users, n=300):
     '''Lump countries with fewer than n users registering in data set as "other"
         note: choosing 300 for the March sample results in  5% of the population in the in "other"'''
-    countries = pd.DataFrame(df_users['Country'].value_counts())
-    countries_included = countries[countries['Country'] > n]
-    include = list(countries_included.index)
+    # countries = pd.DataFrame(df_users['Country'].value_counts())
+    # countries_included = countries[countries['Country'] > n]
+    # include = list(countries_included.index)
+    include = ['united-states', 'united-kingdom', 'australia', 'canada', 'germany', 'russia', 'france', 'spain', 'mexico', 'poland', 'taiwan', 'turkey', 'ukraine', 'colombia', 'south-korea', 'netherlands', 'new-zealand', 'japan', 'finland', 'brazil', 'hong-kong', 'norway', 'thailand', 'india', 'sweden', 'united-arab-emirates', 'denmark', 'singapore', 'italy', 'vietnam', 'hungary',
+               'belgium', 'malaysia', 'austria', 'argentina', 'czech-republic', 'israel', 'indonesia', 'lithuania', 'romania', 'portugal', 'philippines', 'greece', 'south-africa', 'peru', 'switzerland', 'belarus', 'venezuela', 'slovakia', 'ireland', 'estonia', 'chile', 'serbia', 'slovenia', 'saudia-arabia', 'kazakhstan', 'bulgaria', 'ecuador', 'egypt', 'croatia', 'iran', 'pakistan', 'macedonia']
+
     df_users['Country'] = df_users.apply(
         lambda row: row['Country'] if row['Country'] in include else "other_country", axis=1)
 
     return df_users
+
+
+def dummify_countries(df_users):
+    countries = pd.get_dummies(df_users['Country'])
+    df_users[countries.columns] = countries
+
+    df_users.drop(['Country'], axis=1, inplace=True)
+    return df_users
+
+
+def dummify_ages(df_users):
+    ages = pd.get_dummies(df_users['How old are you?'])
+    df_users[ages.columns] = ages
+
+    df_users.drop(['How old are you?'], axis=1, inplace=True)
+    return df_users
+
+
+def drop_unmodeled_fields(df):
+
+    dates = ['Date Joined']
+    eda_only_fields = ['last_event_date',
+                       'avg_num_days_per_level',
+                       'last_action',
+                       'active_time_days',
+                       'total_play_time',
+                       'last_level_was_practice',
+                       'last_level_name',
+                       'activity_gap_days',
+                       'data_through',
+                       'last_level_was_completed',
+                       'daygap',
+                       'last_level_played',
+                       'avg_play_time_per_level_s',
+                       'last_level_time_s']
+
+    too_sparse = ['How likely are you to recommend CodeCombat?',
+                  'How hard is CodeCombat?',
+                  'What polls do you like?',
+                  'How interested are you in programming?',
+                  'How did you hear about CodeCombat?',
+                  'Early bird or night owl?',
+                  'How fast is your internet?',
+                  'Friends who code?',
+                  "How likely that you'd recommend CodeCombat?",
+                  'Want to be a programmer?',
+                  'Gender',
+                  'Favorite programming language?',
+                  'How long have you been programming?',
+                  'Gender?']
+
+    df.drop(dates, axis=1, inplace=True)
+    df.drop(eda_only_fields, axis=1, inplace=True)
+    df.drop(too_sparse, axis=1, inplace=True)
+
+    return df
 
 
 def add_coding_language(df_users, df_levels, level_group, num_levels_col):
@@ -445,7 +504,7 @@ if __name__ == '__main__':
     march_path = '../../data/march/'
     tiny_sample_path = '../../data/tiny_sample/'
 
-    path = tiny_sample_path
+    path = march_path
     df_users, df_levels, df_events = read_files(path)
 
     # clean up and filter user df if necessary
@@ -464,15 +523,18 @@ if __name__ == '__main__':
     df_users = add_total_play_time_per_user(
         df_users, df_levels)  # add play time
     df_users = add_last_play_info(df_users, df_events)
+    print list(df_users.columns)
     df_users = add_active_days(df_users)
     df_users = add_activity_gap_info(df_users, '2017-10-15')
     df_users = add_last_level_completion_info(df_users, df_levels)
+    print list(df_users.columns)
     df_users = add_avg_play_per_level(df_users)
     df_users = add_avg_days_per_level(df_users)
     added_eda_only_fields = set(df_users.columns) - orig_fields
 
     # add fields to user df for target modeling and eda
     df_users = add_last_level_started(df_users, df_levels)
+    print list(df_users.columns)
     df_users = add_last_campaign_started(df_users)
     added_target_fields = set(df_users.columns) - \
         orig_fields - added_eda_only_fields
@@ -481,48 +543,25 @@ if __name__ == '__main__':
     df_users = fill_out_age(df_users)
     # df_users = add_country_group(df_users)
     df_users = add_english_speaking(df_users)
-    df_users = aggregate_small_pop_countries(df_users, n=300)
+    df_users = aggregate_small_pop_countries(df_users)
+    df_users = dummify_countries(df_users)
+    df_users = dummify_ages(df_users)
 
-    # add average time to play and average days for teh first six levels
-    # first_six = ['dungeons-of-kithgard', 'gems-in-the-deep',
-    #              'shadow-guard', 'true-names', 'the-raised-sword', 'fire-dancing']
-    # name = "first_six"
-    #
-    # df_users = add_group_start_and_complete_date(
-    #     df_users, df_events, first_six, name)
-    # df_users = add_group_completion_num(
-    #     df_users, df_events, first_six, name)
-    #
     special_actions = ['Hint Used', 'Hints Clicked',
                        'Hints Next Clicked', 'Started Level', 'Show problem alert']
     special_names = ['rate_hint_used_', 'rate_hints_clicked_',
                      'rate_hints_next_clicked_', 'rate_started_level_', 'rate_show_problem_alerts_']
-    #
-    # for i in xrange(len(special_actions)):
-    #     df_users = add_number_special_activities(
-    #         df_users, df_events, special_actions[i], 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, special_names[i] + name)
-    #
-    # df_users = add_number_special_activities(
-    #     df_users, df_levels, 'Practice', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_practice_levels_' + name, use_events=False)
 
+    '''
     df_users = add_coding_language(
         df_users, df_levels, first_six, 'num_levels_completed_in_' + name)
 
-    # df_users = add_number_logins(
-    #     df_users, df_events, 'first_six', 'date_started_' + name, 'date_completed_' + name, time_threshold_hours=1.0)
 
-    # first_six_num = [1, 2, 3, 4, 5, 6]
-    # name = "first_six_num"
-    # df_users = add_group_start_and_complete_date(
-    #     df_users, df_events, first_six_num, name, byname=False)
-    # df_users = add_group_completion_num(
-    #     df_users, df_events, first_six_num, name, byname=False)
-    #
-    # for i in xrange(len(special_actions)):
-    #     df_users = add_number_special_activities(
-    #         df_users, df_events, special_actions[i], 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, special_names[i] + name)
-    # df_users = add_number_special_activities(
-    #     df_users, df_levels, 'Practice', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_practice_levels_' + name, use_events=False)
+    df_users = add_number_logins(
+        df_users, df_events, 'first_six', 'date_started_' + name, 'date_completed_' + name, time_threshold_hours=1.0)
+
+    '''
+    df_users = drop_unmodeled_fields(df_users)
 
     added_modeling_fields = set(df_users.columns) - orig_fields - \
         added_eda_only_fields - added_target_fields
@@ -558,8 +597,12 @@ if __name__ == '__main__':
             df_users = add_number_special_activities(
                 df_users, df_levels, 'Practice', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_practice_levels_' + name, use_events=False)
 
+            df_users.drop(['date_started_' + name, 'date_completed_' + name,
+                           'num_levels_completed_in_' + name], axis=1, inplace=True)
+            df_output = df_users.drop(['Id'], axis=1)
+
         # write out csv file for later use
-        df_users.to_csv(path + model_name + '_users.csv')
+        df_output.to_csv(path + model_name + '_users.csv')
 
     print "Orig fields are:"
     print list(orig_fields)

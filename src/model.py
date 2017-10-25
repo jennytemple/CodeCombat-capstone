@@ -71,59 +71,57 @@ def categorize_by_campaign(y, num_cats):
                 'desert', 'mountain', 'glacier']
         y = y.apply(lambda row: "early_churn" if row in early else (
             "mid_churn" if row in mid else ("later_churn" if row in late else "other")))
-    # if num_cats == 4:
-    #     early = ['dungeon']
-    #     mid = ['forest']
-    #     late = ['campaign-web-dev-1', 'campaign-game-dev-1','campaign-web-dev-2', 'campaign-game-dev-2', 'desert', 'mountain', 'glacier']
-    #     y = y.apply(lambda row: "early_churn" if row in early else ("mid_churn" if row in mid else ("later_churn" if row in late else "other")))
-    # could also investigate campaign vs dev
+
     return y.values, name
 
 
-def drop_unmodeled_fields(df):
-
-    dates = ['date_completed_first_six',
-             'Date Joined', 'date_started_first_six']
-    target_leakage = ['num_levels_completed_in_first_six']
-    eda_only_fields = ['last_event_date',
-                       'avg_num_days_per_level',
-                       'last_action',
-                       'active_time_days',
-                       'total_play_time',
-                       'last_level_was_practice',
-                       'last_level_name',
-                       'activity_gap_days',
-                       'data_through',
-                       'last_level_was_completed',
-                       'daygap',
-                       'last_level_played',
-                       'avg_play_time_per_level_s',
-                       'last_level_time_s']
-
-    too_sparse = ['How likely are you to recommend CodeCombat?',
-                  'How hard is CodeCombat?',
-                  'What polls do you like?',
-                  'How interested are you in programming?',
-                  'How did you hear about CodeCombat?',
-                  'Early bird or night owl?',
-                  'How fast is your internet?',
-                  'Friends who code?',
-                  "How likely that you'd recommend CodeCombat?",
-                  'Want to be a programmer?',
-                  'Gender',
-                  'Favorite programming language?',
-                  'How long have you been programming?',
-                  'Gender?']
-
-    not_useful = ['Id', 'Unnamed: 0']
-
-    df.drop(dates, axis=1, inplace=True)
-    df.drop(target_leakage, axis=1, inplace=True)
-    df.drop(eda_only_fields, axis=1, inplace=True)
-    df.drop(too_sparse, axis=1, inplace=True)
-    df.drop(not_useful, axis=1, inplace=True)
-
-    return df
+'''
+moved to feature_eng
+'''
+# def drop_unmodeled_fields(df):
+#
+#     dates = ['date_completed_first_six',
+#              'Date Joined', 'date_started_first_six']
+#     target_leakage = ['num_levels_completed_in_first_six']
+#     eda_only_fields = ['last_event_date',
+#                        'avg_num_days_per_level',
+#                        'last_action',
+#                        'active_time_days',
+#                        'total_play_time',
+#                        'last_level_was_practice',
+#                        'last_level_name',
+#                        'activity_gap_days',
+#                        'data_through',
+#                        'last_level_was_completed',
+#                        'daygap',
+#                        'last_level_played',
+#                        'avg_play_time_per_level_s',
+#                        'last_level_time_s']
+#
+#     too_sparse = ['How likely are you to recommend CodeCombat?',
+#                   'How hard is CodeCombat?',
+#                   'What polls do you like?',
+#                   'How interested are you in programming?',
+#                   'How did you hear about CodeCombat?',
+#                   'Early bird or night owl?',
+#                   'How fast is your internet?',
+#                   'Friends who code?',
+#                   "How likely that you'd recommend CodeCombat?",
+#                   'Want to be a programmer?',
+#                   'Gender',
+#                   'Favorite programming language?',
+#                   'How long have you been programming?',
+#                   'Gender?']
+#
+#     not_useful = ['Id', 'Unnamed: 0']
+#
+#     df.drop(dates, axis=1, inplace=True)
+#     df.drop(target_leakage, axis=1, inplace=True)
+#     df.drop(eda_only_fields, axis=1, inplace=True)
+#     df.drop(too_sparse, axis=1, inplace=True)
+#     df.drop(not_useful, axis=1, inplace=True)
+#
+#     return df
 
 
 def fix_target_and_drop_target_fields(df, target):
@@ -141,23 +139,24 @@ def fix_target_and_drop_target_fields(df, target):
     return df, y
 
 
-def dummify_with_countries(X):
-    countries = pd.get_dummies(X['Country'])
-    X[countries.columns] = countries
-
-    ages = pd.get_dummies(X['How old are you?'])
-    X[ages.columns] = ages
-
-    X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
-    return X
-
-
-def dummify_no_countries(X):
-    ages = pd.get_dummies(X['How old are you?'])
-    X[ages.columns] = ages
-
-    X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
-    return X
+'''moved to feature_eng '''
+# def dummify_with_countries(X):
+#     countries = pd.get_dummies(X['Country'])
+#     X[countries.columns] = countries
+#
+#     ages = pd.get_dummies(X['How old are you?'])
+#     X[ages.columns] = ages
+#
+#     X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
+#     return X
+#
+#
+# def dummify_no_countries(X):
+#     ages = pd.get_dummies(X['How old are you?'])
+#     X[ages.columns] = ages
+#
+#     X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
+#     return X
 
 
 def extreme_filter(X):
@@ -268,8 +267,6 @@ if __name__ == '__main__':
     y, name = categorize_by_level_num(y, num_labels)
     # y, name = categorize_by_campaign(y, num_labels)
 
-    df = dummify_with_countries(df)
-    #df = dummify_no_countries(df)
     features = list(df.columns)
 
     X = df.values
