@@ -344,7 +344,7 @@ def dummify_ages(df_users):
 
 def drop_unmodeled_fields(df):
 
-    dates = ['Date Joined']
+    # dates = ['Date Joined']
     eda_only_fields = ['last_event_date',
                        'avg_num_days_per_level',
                        'last_action',
@@ -375,21 +375,25 @@ def drop_unmodeled_fields(df):
                   'How long have you been programming?',
                   'Gender?']
 
-    df.drop(dates, axis=1, inplace=True)
+    # df.drop(dates, axis=1, inplace=True)
     df.drop(eda_only_fields, axis=1, inplace=True)
     df.drop(too_sparse, axis=1, inplace=True)
 
     return df
 
 
-def add_coding_language(df_users, df_levels, level_group, num_levels_col):
+def add_coding_language(df_users, df_levels, name, level_group, num_levels_col, byname=True):
     '''Note: final column added may be greater than 1.0. Some levels are "completed" without seeing victory. Look into "the-raised-sword" to see detail'''
     df_user_num_levels = df_users[['Id', num_levels_col]]
 
     # include only completed levels
     df_levels = df_levels[df_levels['Date Completed'].notnull()]
-    df_levels = df_levels[df_levels['Level'].isin(
-        level_group)]  # include only levels in list
+    if byname:
+        df_levels = df_levels[df_levels['Level'].isin(
+            level_group)]  # include only levels in list
+    else:
+        df_levels = df_levels[df_levels['level_num'] <=
+                              level_group]  # include only levels in list
 
     languages = list(df_levels['Code Language'].unique())
     for l in languages:
@@ -399,21 +403,21 @@ def add_coding_language(df_users, df_levels, level_group, num_levels_col):
         df_levels_l['Id'] = df_levels_l.index
         df_levels_l = pd.merge(
             df_levels_l, df_user_num_levels, how='left', on='Id')
-        df_levels_l[l + '_in_first_six'] = df_levels_l['Code Language'] / \
+        df_levels_l[l + name] = df_levels_l['Code Language'] / \
             df_levels_l[num_levels_col]
+        df_levels_l[l + name] = df_levels_l[l + name] >= 0.5
         df_levels_l.drop(['Code Language', num_levels_col],
                          axis=1, inplace=True)
         df_users = pd.merge(df_users, df_levels_l, how='left', on='Id')
-        df_users[l + '_in_first_six'] = df_users[l + '_in_first_six'].fillna(0)
+        df_users[l + name] = df_users[l + name].fillna(0)
 
-    return df_users
+    return df_users, languages
 
 
 def add_number_logins(df_users, df_events, name, min_date_col, max_date_col, time_threshold_hours=1.0):
     '''for each user, and each event, add time between events, filter on max date, and count the number of events over a certain time '''
     # decrease size of df_events
-    import pdb
-    pdb.set_trace()
+
     df_events = df_events[['User Id', 'Created']]
     # filter dates
     df_users_max_dates = df_users[['Id', min_date_col, max_date_col]]
@@ -432,18 +436,21 @@ def add_number_logins(df_users, df_events, name, min_date_col, max_date_col, tim
     # df_events = df_events.sort_values(
     #     'Created')  # data set appears to be sorted by time already, but repeat in case that assumption is incorrect
     df_events['shifted'] = df_events.groupby('User Id')['Created'].shift(1)
-    df_events['lag'] = df_events['Created'] - df_events['shifted']
-    df_events['lag_days'] = df_events['lag'].dt.days
-    df_events['lag_secs'] = df_events['lag'].dt.seconds
-    df_events['lag_hours'] = (df_events['lag_days'] * 24.0) + \
-        (df_events['lag_secs'] / 60 / 60)
+    # df_events['lag'] = df_events['Created'] - df_events['shifted']
+    # df_events['lag_days'] = df_events['lag'].dt.days
+    # df_events['lag_secs'] = df_events['lag'].dt.seconds
+    # df_events['lag_hours'] = (df_events['lag_days'] * 24.0) + \
+    #     (df_events['lag_secs'] / 60 / 60)
+    df_events['lag_hours'] = (df_events['Created'] - df_events['shifted']).dt.days * \
+        24.0 + (df_events['Created'] - df_events['shifted']
+                ).dt.seconds / 60.0 / 60.0
 
     # get number of events exceeding time threshold
     df_events = df_events[df_events['lag_hours'] >= time_threshold_hours]
-    df_logins = df_events[['User Id', 'lag_hours']].groupby('User Id').count()
-    df_logins['Id'] = df_logins.index
+    df_events = df_events[['User Id', 'lag_hours']].groupby('User Id').count()
+    df_events['Id'] = df_events.index
 
-    df_users = pd.merge(df_users, df_logins, how='left', on='Id')
+    df_users = pd.merge(df_users, df_events, how='left', on='Id')
     df_users['logins_' + name] = df_users['lag_hours'].fillna(0)
     df_users.drop('lag_hours', axis=1, inplace=True)
     return df_users
@@ -504,8 +511,9 @@ if __name__ == '__main__':
     march_path = '../../data/march/'
     tiny_sample_path = '../../data/tiny_sample/'
 
-    path = march_path
-    df_users, df_levels, df_events = read_files(path, 'train/')
+    path = tiny_sample_path
+    # df_users, df_levels, df_events = read_files(path, 'train/')
+    df_users, df_levels, df_events = read_files(path, t='')
 
     # clean up and filter user df if necessary
     df_users = cleanup_users(df_users)
@@ -523,18 +531,15 @@ if __name__ == '__main__':
     df_users = add_total_play_time_per_user(
         df_users, df_levels)  # add play time
     df_users = add_last_play_info(df_users, df_events)
-    print list(df_users.columns)
     df_users = add_active_days(df_users)
     df_users = add_activity_gap_info(df_users, '2017-10-15')
     df_users = add_last_level_completion_info(df_users, df_levels)
-    print list(df_users.columns)
     df_users = add_avg_play_per_level(df_users)
     df_users = add_avg_days_per_level(df_users)
     added_eda_only_fields = set(df_users.columns) - orig_fields
 
     # add fields to user df for target modeling and eda
     df_users = add_last_level_started(df_users, df_levels)
-    print list(df_users.columns)
     df_users = add_last_campaign_started(df_users)
     added_target_fields = set(df_users.columns) - \
         orig_fields - added_eda_only_fields
@@ -572,7 +577,7 @@ if __name__ == '__main__':
     # filter data set on num levels completed
     # write out df_users to different files for different models
 
-    d = chunk_up_dataset2(chunk_size=5, num_levels=100)
+    d = chunk_up_dataset2(chunk_size=10, num_levels=100)
     model_dict, model_list = make_model_dict()
 
     for model_name in model_list:
@@ -597,12 +602,31 @@ if __name__ == '__main__':
             df_users = add_number_special_activities(
                 df_users, df_levels, 'Practice', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_practice_levels_' + name, use_events=False)
 
+            # df_users = add_number_logins(
+            #     df_users, df_events, name, 'date_started_' + name, 'date_completed_' + name, time_threshold_hours=1.0)
+            # keep the last one in the set
+            df_users['num_levels_completed_in'] = df_users['num_levels_completed_in_' + name]
+            df_users['date_completed'] = df_users['date_completed_' + name]
             df_users.drop(['date_started_' + name, 'date_completed_' + name,
                            'num_levels_completed_in_' + name], axis=1, inplace=True)
             df_output = df_users.drop(['Id'], axis=1)
 
+        # add for entire time period only:
+        df_users, language_list = add_coding_language(
+            df_users, df_levels, name, i, 'num_levels_completed_in', byname=False)
+        df_users = add_number_logins(
+            df_users, df_events, name, 'Date Joined', 'date_completed', time_threshold_hours=1.0)
+        if 'Unnamed: 0' in df_users.columns:
+            df_users.drop(['Unnamed: 0'], axis=1, inplace=True)
         # write out csv file for later use
-        df_output.to_csv(path + model_name + '_users.csv')
+        df_output = df_users.drop(
+            ['Id', 'Date Joined', 'num_levels_completed_in', 'date_completed'], axis=1)
+        df_output.to_csv(path + model_name + '_users.csv', index=False)
+
+        # drop fields not desired for next output csv
+        df_users.drop(['logins_' + name], axis=1, inplace=True)
+        for lang in language_list:
+            df_users.drop([lang + name], axis=1, inplace=True)
 
     print "Orig fields are:"
     print list(orig_fields)
