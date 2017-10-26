@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
+import pickle
 
 
 def turn_off_warnings():
@@ -75,55 +76,6 @@ def categorize_by_campaign(y, num_cats):
     return y.values, name
 
 
-'''
-moved to feature_eng
-'''
-# def drop_unmodeled_fields(df):
-#
-#     dates = ['date_completed_first_six',
-#              'Date Joined', 'date_started_first_six']
-#     target_leakage = ['num_levels_completed_in_first_six']
-#     eda_only_fields = ['last_event_date',
-#                        'avg_num_days_per_level',
-#                        'last_action',
-#                        'active_time_days',
-#                        'total_play_time',
-#                        'last_level_was_practice',
-#                        'last_level_name',
-#                        'activity_gap_days',
-#                        'data_through',
-#                        'last_level_was_completed',
-#                        'daygap',
-#                        'last_level_played',
-#                        'avg_play_time_per_level_s',
-#                        'last_level_time_s']
-#
-#     too_sparse = ['How likely are you to recommend CodeCombat?',
-#                   'How hard is CodeCombat?',
-#                   'What polls do you like?',
-#                   'How interested are you in programming?',
-#                   'How did you hear about CodeCombat?',
-#                   'Early bird or night owl?',
-#                   'How fast is your internet?',
-#                   'Friends who code?',
-#                   "How likely that you'd recommend CodeCombat?",
-#                   'Want to be a programmer?',
-#                   'Gender',
-#                   'Favorite programming language?',
-#                   'How long have you been programming?',
-#                   'Gender?']
-#
-#     not_useful = ['Id', 'Unnamed: 0']
-#
-#     df.drop(dates, axis=1, inplace=True)
-#     df.drop(target_leakage, axis=1, inplace=True)
-#     df.drop(eda_only_fields, axis=1, inplace=True)
-#     df.drop(too_sparse, axis=1, inplace=True)
-#     df.drop(not_useful, axis=1, inplace=True)
-#
-#     return df
-
-
 def fix_target_and_drop_target_fields(df, target):
     '''
     return identified target field and drop other target-related fields
@@ -139,24 +91,9 @@ def fix_target_and_drop_target_fields(df, target):
     return df, y
 
 
-'''moved to feature_eng '''
-# def dummify_with_countries(X):
-#     countries = pd.get_dummies(X['Country'])
-#     X[countries.columns] = countries
-#
-#     ages = pd.get_dummies(X['How old are you?'])
-#     X[ages.columns] = ages
-#
-#     X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
-#     return X
-#
-#
-# def dummify_no_countries(X):
-#     ages = pd.get_dummies(X['How old are you?'])
-#     X[ages.columns] = ages
-#
-#     X.drop(['Country', 'How old are you?'], axis=1, inplace=True)
-#     return X
+def drop_unnamed(df):
+    df.drop(['Unnamed: 0'], axis=1, inplace=True)
+    return df
 
 
 def extreme_filter(X):
@@ -225,6 +162,8 @@ def model_random_forest(X_train, y_train, name, X_test, y_test):
     print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_test, y_predict)
 
+    pickle.dump(rand_forest, open("test.p", "wb"))
+
     return rand_forest.feature_importances_
 
 
@@ -253,10 +192,12 @@ if __name__ == '__main__':
     august_path = '../../data/august/'
     march_path = '../../data/march/'
 
-    path = march_path
-    df = pd.read_csv(path + 'post_processed_users.csv')
+    csv_name = 'Model_predict_at_13_users.csv'
 
-    df = drop_unmodeled_fields(df)
+    path = march_path
+    df = pd.read_csv(path + csv_name)
+
+    df = drop_unnamed(df)  # unnamed field when read in csv
     df = filter_missing(df)
 
     target = 'Levels Completed'
@@ -273,8 +214,12 @@ if __name__ == '__main__':
     # X = extreme_filter(X).values
 
     X_train, X_test, y_train, y_test = train_test_split(X, y)
+    import pdb
+    pdb.set_trace()
+    X_train, X_test = train_test_split(X)
 
     ''' Multinomial Logistic Regression '''
+    '''
     scaler = StandardScaler().fit(X_train)
     X_train_scaled = scaler.transform(X_train)
 
@@ -283,7 +228,7 @@ if __name__ == '__main__':
     mlr_feature_importance_readable = rank_features(
         features, mlr_feature_importance)[::-1]
     print mlr_feature_importance_readable
-
+    '''
     ''' Random Forest'''
     rf_feature_importance = model_random_forest(
         X_train, y_train, name, X_test, y_test)

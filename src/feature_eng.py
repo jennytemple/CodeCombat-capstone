@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 from investigate_user_behavior import get_campaign_freq, unpaid_users_over_level
 
 
-def read_files(path):
+def read_files(path, t):
     event_header = ['Created', 'User Id', 'Event Name', 'Level',
                     'raw_event1', 'raw_event2', 'raw_event3', 'raw_event4']
 
-    df_users = pd.read_csv(path + 'users.csv')
+    df_users = pd.read_csv(path + t + 'users.csv')
     if 'Unnamed: 0' in df_users.columns:
         df_users.drop('Unnamed: 0', axis=1, inplace=True)
     df_levels = pd.read_csv(path + 'levels.csv')
@@ -505,7 +505,7 @@ if __name__ == '__main__':
     tiny_sample_path = '../../data/tiny_sample/'
 
     path = march_path
-    df_users, df_levels, df_events = read_files(path)
+    df_users, df_levels, df_events = read_files(path, 'train/')
 
     # clean up and filter user df if necessary
     df_users = cleanup_users(df_users)
