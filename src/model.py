@@ -24,7 +24,7 @@ def filter_missing(df):
     return df.dropna(axis=0, how='any')
 
 
-def categorize_by_level_num(level_nums, num_cats):
+def categorize_by_level_num(level_nums, num_cats, threshold=15):
     '''
     For now, use number of levels, but later do by last campaign
     campaigns = pd.read_csv('../data/campaign_list.csv')
@@ -34,7 +34,8 @@ def categorize_by_level_num(level_nums, num_cats):
     if num_cats == 2:
         # 1st bin: x s.t. value0 <= x < value1
         # first most common 12 levels are in dungeon campaign
-        bins = np.array([0, 13, 999])
+        # bins = np.array([0, 13, 999])
+        bins = np.array([0, threshold, 999])
         print bins
     if num_cats == 3:
         # levels 20 to 21 is a pretty big drop off
@@ -92,7 +93,8 @@ def fix_target_and_drop_target_fields(df, target):
 
 
 def drop_unnamed(df):
-    df.drop(['Unnamed: 0'], axis=1, inplace=True)
+    if 'Unnamed: 0' in df.columns:
+        df.drop(['Unnamed: 0'], axis=1, inplace=True)
     return df
 
 
@@ -190,9 +192,12 @@ if __name__ == '__main__':
 
     sample_path = '../../data/sample/'
     august_path = '../../data/august/'
-    march_path = '../../data/march/'
+    march_path = '~/galvanize/project/data/march/train/'
+    tiny_sample_path = '../../data/tiny_sample/'
 
-    csv_name = 'Model_predict_at_13_users.csv'
+    # possibilities for level_predict: [10,15,30,60,100]
+    level_predict = 100
+    csv_name = 'model_predict_at_' + str(level_predict) + '.csv'
 
     path = march_path
     df = pd.read_csv(path + csv_name)
@@ -200,12 +205,16 @@ if __name__ == '__main__':
     df = drop_unnamed(df)  # unnamed field when read in csv
     df = filter_missing(df)
 
+    # temp!
+    # df.drop(['luachunk_20', 'pythonchunk_20',
+    #  'javascriptchunk_20'], axis=1, inplace=True)
+
     target = 'Levels Completed'
     # target = 'last_campaign_started'
     num_labels = 2
     df, y = fix_target_and_drop_target_fields(df, target)
     print list(df.columns)
-    y, name = categorize_by_level_num(y, num_labels)
+    y, name = categorize_by_level_num(y, num_labels, level_predict)
     # y, name = categorize_by_campaign(y, num_labels)
 
     features = list(df.columns)
@@ -214,8 +223,7 @@ if __name__ == '__main__':
     # X = extreme_filter(X).values
 
     X_train, X_test, y_train, y_test = train_test_split(X, y)
-    import pdb
-    pdb.set_trace()
+
     X_train, X_test = train_test_split(X)
 
     ''' Multinomial Logistic Regression '''
