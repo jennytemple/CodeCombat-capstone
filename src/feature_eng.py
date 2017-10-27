@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from investigate_user_behavior import get_campaign_freq, unpaid_users_over_level
+
+# from investigate_user_behavior import get_campaign_freq, unpaid_users_over_level
 
 
 def read_files(path, t):
@@ -12,8 +12,13 @@ def read_files(path, t):
     if 'Unnamed: 0' in df_users.columns:
         df_users.drop('Unnamed: 0', axis=1, inplace=True)
     df_levels = pd.read_csv(path + 'levels.csv')
+
     df_events = pd.read_csv(path + 'events.csv', skiprows=1,
                             names=event_header, error_bad_lines=False, warn_bad_lines=True)
+    # df_events_a = pd.read_csv(path + 'events_a.csv')
+    # df_events_b = pd.read_csv(path + 'events_b.csv')
+    # df_events = pd.concat([df_events_a, df_events_b], axis=0)
+
     return (df_users, df_levels, df_events)
 
 
@@ -39,7 +44,8 @@ def add_level_num(df_levels):
     return df_levels
 
 
-def add_event_num(df_levels, df_events):
+def add_event_num(df_l, df_events):
+    df_levels = df_l.copy()
     df_levels = df_levels[['User Id', 'Level', 'level_num']]
     df_events = pd.merge(df_events, df_levels, how='left',
                          on=['User Id', 'Level'])
@@ -168,7 +174,8 @@ def add_avg_days_per_level(df_users):
     return df_users
 
 
-def add_last_level_started(df_users, df_levels):
+def add_last_level_started(df_users, df_l):
+    df_levels = df_l.copy()
     df_levels = df_levels.dropna(axis=0, how='any')
     df_last_level_started = df_levels[['User Id', 'Created']].groupby([
                                                                       'User Id']).max()
@@ -186,8 +193,11 @@ def add_last_level_started(df_users, df_levels):
     return df_users
 
 
-def add_last_campaign_started(df_users):
-    campaigns = pd.read_csv('../../data/campaign_list.csv')
+def add_last_campaign_started(df_users, aws=False):
+    if aws == True:
+        campaigns = pd.read_csv('data/campaign_list.csv')
+    else:
+        campaigns = pd.read_csv('../../data/campaign_list.csv')
     campaigns = campaigns.rename(index=str, columns={
                                  'Campaign': 'last_campaign_started', 'Level': 'last_level_started'})
     df_users = pd.merge(df_users, campaigns, how='left',
@@ -197,8 +207,9 @@ def add_last_campaign_started(df_users):
     return df_users
 
 
-def add_group_start_and_complete_date(df_users, df_events, level_group, name, byname=True):
+def add_group_start_and_complete_date(df_users, df_e, level_group, name, byname=True):
     # filter events for level completions of groups
+    df_event = df_e.copy()
     if byname == True:
         df_events_group = df_events[df_events['Level'].isin(level_group)]
     else:
@@ -227,8 +238,9 @@ def add_group_start_and_complete_date(df_users, df_events, level_group, name, by
     return df_users
 
 
-def add_group_completion_num(df_users, df_events, level_group, name, byname=True):
+def add_group_completion_num(df_users, df_e, level_group, name, byname=True):
     # filter events for level completions of groups
+    df_events = df_e.copy()
     if byname == True:
         df_events_group = df_events[df_events['Level'].isin(level_group)]
     else:
@@ -247,10 +259,11 @@ def add_group_completion_num(df_users, df_events, level_group, name, byname=True
     return df_users
 
 
-def add_number_special_activities(df_users, df_events, event_type, earliest_date_field, latest_date_field, ref_field, new_field_name, use_events=True):
+def add_number_special_activities(df_users, df_e, event_type, earliest_date_field, latest_date_field, ref_field, new_field_name, use_events=True):
     '''count the number of times per user a specific event type occured within a time frame defined earlier and add it to the users df '''
     '''primarily built for event dataframe events, but also handles practice field in the level data frame'''
     '''Note: most special events are not tied to a particular level, so time frame has to be used instead of level '''
+    df_events = df_e.copy()
     if use_events:
         df_events_special = df_events[df_events['Event Name'] == event_type]
     else:
@@ -382,8 +395,9 @@ def drop_unmodeled_fields(df):
     return df
 
 
-def add_coding_language(df_users, df_levels, name, level_group, num_levels_col, byname=True):
+def add_coding_language(df_users, df_l, name, level_group, num_levels_col, byname=True):
     '''Note: final column added may be greater than 1.0. Some levels are "completed" without seeing victory. Look into "the-raised-sword" to see detail'''
+    df_levels = df_l.copy()
     df_user_num_levels = df_users[['Id', num_levels_col]]
 
     # include only completed levels
@@ -405,7 +419,9 @@ def add_coding_language(df_users, df_levels, name, level_group, num_levels_col, 
             df_levels_l, df_user_num_levels, how='left', on='Id')
         df_levels_l[l + name] = df_levels_l['Code Language'] / \
             df_levels_l[num_levels_col]
-        df_levels_l[l + name] = df_levels_l[l + name] >= 0.5
+
+        # df_levels_l[l + name] = df_levels_l[l + name] >= 0.5
+
         df_levels_l.drop(['Code Language', num_levels_col],
                          axis=1, inplace=True)
         df_users = pd.merge(df_users, df_levels_l, how='left', on='Id')
@@ -414,10 +430,10 @@ def add_coding_language(df_users, df_levels, name, level_group, num_levels_col, 
     return df_users, languages
 
 
-def add_number_logins(df_users, df_events, name, min_date_col, max_date_col, time_threshold_hours=1.0):
+def add_number_logins(df_users, df_e, name, min_date_col, max_date_col, time_threshold_hours=1.0):
     '''for each user, and each event, add time between events, filter on max date, and count the number of events over a certain time '''
     # decrease size of df_events
-
+    df_events = df_e.copy()
     df_events = df_events[['User Id', 'Created']]
     # filter dates
     df_users_max_dates = df_users[['Id', min_date_col, max_date_col]]
@@ -456,51 +472,101 @@ def add_number_logins(df_users, df_events, name, min_date_col, max_date_col, tim
     return df_users
 
 
-def chunk_up_dataset(df_users, df_levels, chunk_size=10, num_levels=400):
-    df_unpaid = unpaid_users_over_level(
-        df_users, df_levels, n=12)
-    unpaid_level_freq = get_campaign_freq(df_unpaid)
-    # create chunks of levels to gather data on
+'''deprecated '''
+# def chunk_up_dataset(df_users, df_levels, chunk_size=10, num_levels=400):
+#     df_unpaid = unpaid_users_over_level(
+#         df_users, df_levels, n=12)
+#     unpaid_level_freq = get_campaign_freq(df_unpaid)
+#     # create chunks of levels to gather data on
+#     d = {}
+#     # these first chunks are unusual sizes based on when users generally start playing new campaigns
+#     d['12_pre_forest'] = list(
+#         unpaid_level_freq['level_name'][0:12])  # first 12 levels
+#     d['24'] = list(unpaid_level_freq['level_name'][12:24])
+#     d['36'] = list(unpaid_level_freq['level_name'][24:36])
+#     d['48'] = list(unpaid_level_freq['level_name'][36:48])
+#     d['59_pre_desert'] = list(unpaid_level_freq['level_name'][48:59])
+#     d['70'] = list(unpaid_level_freq['level_name'][59:70])
+#
+#     # the rest of the chunks can be in a standard size
+#     for l in xrange(70 + chunk_size, num_levels, chunk_size):
+#         d[str(l)] = list(unpaid_level_freq['level_name'][l - chunk_size:l])
+#
+#     return d
+
+
+def chunk_up_dataset2(chunk_size=5, num_levels=70, choice=2):
     d = {}
-    # these first chunks are unusual sizes based on when users generally start playing new campaigns
-    d['12_pre_forest'] = list(
-        unpaid_level_freq['level_name'][0:12])  # first 12 levels
-    d['24'] = list(unpaid_level_freq['level_name'][12:24])
-    d['36'] = list(unpaid_level_freq['level_name'][24:36])
-    d['48'] = list(unpaid_level_freq['level_name'][36:48])
-    d['59_pre_desert'] = list(unpaid_level_freq['level_name'][48:59])
-    d['70'] = list(unpaid_level_freq['level_name'][59:70])
+    if choice == 1:
+        d[6] = range(6)
+        d[13] = range(6, 13)
+        d[20] = range(13, 20)
+        for i in xrange(20 + chunk_size, num_levels, chunk_size):
+            d[i] = range(i - chunk_size, i)
+    if choice == 2:
+        for i in xrange(chunk_size, num_levels, chunk_size):
+            d[i] = range(i - chunk_size, i)
 
-    # the rest of the chunks can be in a standard size
-    for l in xrange(70 + chunk_size, num_levels, chunk_size):
-        d[str(l)] = list(unpaid_level_freq['level_name'][l - chunk_size:l])
-
+    if choice == 3:
+        d[6] = range(6)
+        d[13] = range(6, 13)
+        d[30] = range(13, 30)
+    if choice == 4:
+        d[30] = range(13, 30)
     return d
 
 
-def chunk_up_dataset2(chunk_size=10, num_levels=200):
+def make_model_dict(choice=2):
     d = {}
-    d[6] = range(6)
-    d[13] = range(6, 13)
-    d[20] = range(13, 20)
-    for i in xrange(20 + chunk_size, num_levels, chunk_size):
-        d[i] = range(i - chunk_size, i)
-    return d
+    if choice == 1:
+        d['Model_predict_at_13'] = [0, 6]
+        d['Model_predict_at_30'] = [6, 13]
+        d['Model_predict_at_60'] = [13, 30]
+        # d['Model_predict_at_150'] = [50, 100]
+        # d['Model_predict_at_200'] = [100, 150]
 
+        l = ['Model_predict_at_13',
+             'Model_predict_at_30',
+             'Model_predict_at_60']
 
-def make_model_dict():
-    d = {}
-    d['Model_predict_at_13'] = [0, 6]
-    d['Model_predict_at_50'] = [6, 20]
-    d['Model_predict_at_100'] = [20, 50]
-    d['Model_predict_at_150'] = [50, 100]
-    d['Model_predict_at_200'] = [100, 150]
+        #  'Model_predict_at_150',
+        #  'Model_predict_at_200'
 
-    l = ['Model_predict_at_13',
-         'Model_predict_at_50',
-         'Model_predict_at_100',
-         'Model_predict_at_150',
-         'Model_predict_at_200']
+    if choice == 2:
+        # d['Model_predict_at_10'] = [0, 5]
+        # d['Model_predict_at_15'] = [5, 10]
+        # d['Model_predict_at_20'] = [10, 15]
+        # d['Model_predict_at_30'] = [15, 20]
+        # d['Model_predict_at_50'] = [20, 30]
+        # d['Model_predict_at_70'] = [30, 50]
+        # d['Model_predict_at_100'] = [50, 70]
+
+        d['Model_predict_at_10'] = [0, 5]
+        d['Model_predict_at_15'] = [5, 10]
+        d['Model_predict_at_20'] = [10, 15]
+        d['Model_predict_at_30'] = [15, 20]
+        d['Model_predict_at_50'] = [20, 30]
+        d['Model_predict_at_70'] = [30, 50]
+        d['Model_predict_at_100'] = [50, 70]
+        l = ['Model_predict_at_10',
+             'Model_predict_at_15',
+             'Model_predict_at_20',
+             'Model_predict_at_30',
+             'Model_predict_at_50',
+             'Model_predict_at_70',
+             'Model_predict_at_100']
+
+    if choice == 3:
+        d['Model_predict_at_13'] = [0, 6]
+        d['Model_predict_at_30'] = [6, 13]
+        d['Model_predict_at_60'] = [13, 30]
+
+        l = ['Model_predict_at_13',
+             'Model_predict_at_30',
+             'Model_predict_at_60']
+    if choice == 4:
+        d['Model_predict_at_60'] = [13, 30]
+        l = ['Model_predict_at_60']
 
     return d, l
 
@@ -511,7 +577,8 @@ if __name__ == '__main__':
     march_path = '../../data/march/'
     tiny_sample_path = '../../data/tiny_sample/'
 
-    path = tiny_sample_path
+    # aws_march_path = '/home/ec2-user/data/'
+    path = march_path
     # df_users, df_levels, df_events = read_files(path, 'train/')
     df_users, df_levels, df_events = read_files(path, t='')
 
@@ -540,7 +607,7 @@ if __name__ == '__main__':
 
     # add fields to user df for target modeling and eda
     df_users = add_last_level_started(df_users, df_levels)
-    df_users = add_last_campaign_started(df_users)
+    df_users = add_last_campaign_started(df_users, aws=False)
     added_target_fields = set(df_users.columns) - \
         orig_fields - added_eda_only_fields
 
@@ -552,42 +619,36 @@ if __name__ == '__main__':
     df_users = dummify_countries(df_users)
     df_users = dummify_ages(df_users)
 
-    special_actions = ['Hint Used', 'Hints Clicked',
-                       'Hints Next Clicked', 'Started Level', 'Show problem alert']
-    special_names = ['rate_hint_used_', 'rate_hints_clicked_',
-                     'rate_hints_next_clicked_', 'rate_started_level_', 'rate_show_problem_alerts_']
-
-    '''
-    df_users = add_coding_language(
-        df_users, df_levels, first_six, 'num_levels_completed_in_' + name)
-
-
-    df_users = add_number_logins(
-        df_users, df_events, 'first_six', 'date_started_' + name, 'date_completed_' + name, time_threshold_hours=1.0)
-
-    '''
     df_users = drop_unmodeled_fields(df_users)
 
     added_modeling_fields = set(df_users.columns) - orig_fields - \
         added_eda_only_fields - added_target_fields
 
-    df_users_orig = df_users
     # loop through number of models
     # set list_d to be different for each model
     # filter data set on num levels completed
     # write out df_users to different files for different models
 
-    d = chunk_up_dataset2(chunk_size=10, num_levels=100)
-    model_dict, model_list = make_model_dict()
+    special_actions = ['Hint Used', 'Hints Clicked',
+                       'Hints Next Clicked', 'Started Level', 'Show problem alert']
+    special_names = ['rate_hint_used_', 'rate_hints_clicked_',
+                     'rate_hints_next_clicked_', 'rate_started_level_', 'rate_show_problem_alerts_']
+
+    d = chunk_up_dataset2(chunk_size=5, num_levels=100, choice=4)
+    model_dict, model_list = make_model_dict(choice=4)
 
     for model_name in model_list:
         arr_d = np.sort(np.array(d.keys()))
         arr_d = arr_d[arr_d > model_dict[model_name][0]]
         arr_d = arr_d[arr_d <= model_dict[model_name][1]]
 
+        # is this filtering too much? Is it in the right place?
+        df_users = df_users[df_users['Levels Completed']
+                            >= model_dict[model_name][1]]
         print model_name, arr_d
         for i in arr_d:
-            df_users = df_users[df_users['Levels Completed'] >= i - 1]
+            # df_users = df_users[df_users['Levels Completed'] >= i - 1]
+
             name = "chunk_" + str(i)
             group = d[i]
             df_users = add_group_start_and_complete_date(
