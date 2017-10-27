@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.grid_search import GridSearchCV
 import pickle
 
 
@@ -113,16 +114,16 @@ def random_feature(X):
 
 def print_scores(y_true, y_pred):
     accuracy = accuracy_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred, average=None)
-    recall = recall_score(y_true, y_pred, average=None)
+    precision = precision_score(y_true, y_pred)
+    recall = recall_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred)
 
-    f1_score_micro = f1_score(y_true, y_pred, average='micro')
-    f1_score_none = f1_score(y_true, y_pred, average=None)
-    f1_score_macro = f1_score(y_true, y_pred, average='macro')
-    f1_score_weighted = f1_score(y_true, y_pred, average='weighted')
+    # f1_score_none = f1_score(y_true, y_pred, average=None)
+    # f1_score_macro = f1_score(y_true, y_pred, average='macro')
+    # f1_score_weighted = f1_score(y_true, y_pred, average='weighted')
 
-    print "\taccuracy = {}, \n\tprecision = {}, \n\trecall = {}".format(accuracy, precision, recall)
-    print "\tF1 score for each class = {} \n\tF1 score, micro = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(f1_score_none, f1_score_micro, f1_score_macro, f1_score_weighted)
+    print "\taccuracy = {}, \n\tprecision = {}, \n\trecall = {}\n\tf1-score = {}".format(accuracy, precision, recall, f1)
+    # print "\tF1 score for each class = {} \n\tF1 score, micro = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(f1_score_none, f1_score_micro, f1_score_macro, f1_score_weighted)
 
 
 def model_multi_log_reg(X_train_scaled, y_train, name, X_test, y_test):
@@ -152,21 +153,37 @@ def model_random_forest(X_train, y_train, name, X_test, y_test):
     Model with a random forest and print results
     '''
     rand_forest = RandomForestClassifier(class_weight="balanced")
+    #n_estimators, max_features="m", max_depth
+    tuned_parameters = [{'n_estimators': [10, 25, 50, 75, 100], 'max_features': [
+        "sqrt", "log2"], 'max_depth':[None, 2], 'min_samples_split':[2, 4]}]
+    # tuned_parameters = [{'n_estimators': [10, 20, 30, 50, 75, 100]}]
+    # rand_forest = RandomForestClassifier(class_weight="balanced")
+    rand_forest = GridSearchCV(estimator=RandomForestClassifier(
+        class_weight="balanced"), param_grid=tuned_parameters, scoring="accuracy")
     rand_forest.fit(X_train, y_train)
+    print "\nGrid search score: {}".format(rand_forest.best_score_)
+    print "\nThe best parameters:\n\tn_estimators = {}\n\tmax_features = {} \n\tmax depth = {}\n\tmin_samples_split = {}"\
+        .format(rand_forest.best_estimator_.n_estimators, rand_forest.best_estimator_.max_features, rand_forest.best_estimator_.max_depth, rand_forest.best_estimator_.min_samples_split)
 
-    print "On TRAIN data:"
-    y_predict = rand_forest.predict(X_train)
-    print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
+    tuned_rf = RandomForestClassifier(n_estimators=rand_forest.best_estimator_.n_estimators,
+                                      max_features=rand_forest.best_estimator_.max_features,
+                                      max_depth=rand_forest.best_estimator_.max_depth,
+                                      min_samples_split=rand_forest.best_estimator_.min_samples_split,
+                                      class_weight="balanced")
+    tuned_rf.fit(X_train, y_train)
+    print "\nOn TRAIN data:"
+    y_predict = tuned_rf.predict(X_train)
+    print "The Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_train, y_predict)
 
-    print "On TEST data:"
-    y_predict = rand_forest.predict(X_test)
-    print "\nThe Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
+    print "\nOn TEST data:"
+    y_predict = tuned_rf.predict(X_test)
+    print "The Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_test, y_predict)
 
-    pickle.dump(rand_forest, open("test.p", "wb"))
+    pickle.dump(tuned_rf, open("test.p", "wb"))
 
-    return rand_forest.feature_importances_
+    return tuned_rf.feature_importances_
 
 
 def rank_features(cols, coefs):
@@ -196,7 +213,7 @@ if __name__ == '__main__':
     tiny_sample_path = '../../data/tiny_sample/'
 
     # possibilities for level_predict: [10,15,30,60,100]
-    level_predict = 100
+    level_predict = 30
     csv_name = 'model_predict_at_' + str(level_predict) + '.csv'
 
     path = march_path
@@ -247,27 +264,12 @@ if __name__ == '__main__':
 
     '''Random Model'''
     # compare_with_random_mlr_model(X_train_scaled, y_train)
-    print "\nRandom Model"
+    print "\n*************  Random Model  *****************"
     random_X_train = random_feature(X_train)
     random_X_test = random_feature(X_test)
+
+    '''CHANGE THIS!'''
     random_y_pred = model_random_forest(
         random_X_train, y_train, name, random_X_test, y_test)
 
     '''*** Results *** '''
-    '''
-    using campaigns, 4
-
-    '''
-    '''
-    using num levels, 4
-
-    '''
-    '''
-    using campaigns, 2
-    '''
-    '''
-    using levels, 2
-    '''
-    '''
-    using 3 campaigns
-    '''
