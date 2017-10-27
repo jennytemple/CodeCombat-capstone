@@ -57,26 +57,28 @@ if __name__ == '__main__':
     read_path = '~/galvanize/project/data/march/train_to_merge/'
     write_path = '~/galvanize/project/data/march/train/'
 
-    df_l5 = pd.read_csv(read_path + 'Model_predict_at_10_users.csv')
-    df_l10 = pd.read_csv(read_path + 'Model_predict_at_15_users.csv')
-    df_l15 = pd.read_csv(read_path + 'Model_predict_at_30_users.csv')
-    df_l30 = pd.read_csv(read_path + 'Model_predict_at_60_users.csv')
-    df_l60 = pd.read_csv(read_path + 'Model_predict_at_100_users.csv')
-
-    p_df_l5 = purge_to_merge(df_l5, 5)
-    df_l10 = pd.merge(df_l10, p_df_l5, how='left', on='Id')
-
-    p_df_l10 = purge_to_merge(df_l10, 10)
-    df_l15 = pd.merge(df_l15, p_df_l10, how='left', on='Id')
-
-    p_df_l15 = purge_to_merge(df_l15, 15)
-    df_l30 = pd.merge(df_l30, p_df_l15, how='left', on='Id')
-
-    p_df_l30 = purge_to_merge(df_l30, 30)
-    df_l60 = pd.merge(df_l60, p_df_l30, how='left', on='Id')
-
-    clean_and_write(df_l5, 'model_predict_at_10', write_path)
-    clean_and_write(df_l10, 'model_predict_at_15', write_path)
-    clean_and_write(df_l15, 'model_predict_at_30', write_path)
-    clean_and_write(df_l30, 'model_predict_at_60', write_path)
-    clean_and_write(df_l60, 'model_predict_at_100', write_path)
+    df = pd.read_csv(read_path + 'Model_predict_at_13_users.csv')
+    clean_and_write(df, 'model_predict_at_13', write_path)
+    # df_l5 = pd.read_csv(read_path + 'Model_predict_at_10_users.csv')
+    # df_l10 = pd.read_csv(read_path + 'Model_predict_at_15_users.csv')
+    # df_l15 = pd.read_csv(read_path + 'Model_predict_at_30_users.csv')
+    # df_l30 = pd.read_csv(read_path + 'Model_predict_at_60_users.csv')
+    # df_l60 = pd.read_csv(read_path + 'Model_predict_at_100_users.csv')
+    #
+    # p_df_l5 = purge_to_merge(df_l5, 5)
+    # df_l10 = pd.merge(df_l10, p_df_l5, how='left', on='Id')
+    #
+    # p_df_l10 = purge_to_merge(df_l10, 10)
+    # df_l15 = pd.merge(df_l15, p_df_l10, how='left', on='Id')
+    #
+    # p_df_l15 = purge_to_merge(df_l15, 15)
+    # df_l30 = pd.merge(df_l30, p_df_l15, how='left', on='Id')
+    #
+    # p_df_l30 = purge_to_merge(df_l30, 30)
+    # df_l60 = pd.merge(df_l60, p_df_l30, how='left', on='Id')
+    #
+    # clean_and_write(df_l5, 'model_predict_at_10', write_path)
+    # clean_and_write(df_l10, 'model_predict_at_15', write_path)
+    # clean_and_write(df_l15, 'model_predict_at_30', write_path)
+    # clean_and_write(df_l30, 'model_predict_at_60', write_path)
+    # clean_and_write(df_l60, 'model_predict_at_100', write_path)

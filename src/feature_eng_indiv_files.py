@@ -484,6 +484,8 @@ def chunk_up_dataset2(choice):
         d[30] = range(15, 30)
     elif choice == 5:
         d[60] = range(30, 60)
+    elif choice == 20:
+        d[6] = range(6)
     return d
 
 
@@ -505,6 +507,9 @@ def make_model_dict(choice):
         d['Model_predict_at_100'] = [30, 60]
         l = ['Model_predict_at_100']
 
+    elif choice == 20:
+        d['Model_predict_at_13'] = [0, 6]
+        l = ['Model_predict_at_13']
     return d, l
 
 
@@ -571,7 +576,7 @@ if __name__ == '__main__':
     special_names = ['rate_hint_used_', 'rate_hints_clicked_',
                      'rate_hints_next_clicked_', 'rate_started_level_', 'rate_show_problem_alerts_']
 
-    choice = 1
+    choice = 20
     d = chunk_up_dataset2(choice=choice)
     model_dict, model_list = make_model_dict(choice=choice)
 
@@ -581,8 +586,8 @@ if __name__ == '__main__':
         arr_d = arr_d[arr_d <= model_dict[model_name][1]]
 
         # is this filtering too much? Is it in the right place?
-        df_users = df_users[df_users['Levels Completed']
-                            >= model_dict[model_name][1]]
+        # df_users = df_users[df_users['Levels Completed']
+        #                     >= model_dict[model_name][1]]
         print model_name, arr_d
         for i in arr_d:
             # df_users = df_users[df_users['Levels Completed'] >= i - 1]
