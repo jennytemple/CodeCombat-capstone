@@ -47,8 +47,8 @@ def add_level_num(df_levels):
 def add_event_num(df_l, df_events):
     df_levels = df_l.copy()
     df_levels = df_levels[['User Id', 'Level', 'level_num']]
-    df_events = pd.merge(df_events, df_levels, how='left',
-                         on=['User Id', 'Level'])
+    df_events = df_events.merge(df_levels, how='left',
+                                on=['User Id', 'Level'])
     return df_events
 
 
@@ -78,7 +78,7 @@ def add_total_play_time_per_user(df_users, df_levels):
     total_play_time['Id'] = total_play_time.index
 
     # merge files
-    df_users = pd.merge(df_users, total_play_time, how='left', on='Id')
+    df_users = df_users.merge(total_play_time, how='left', on='Id')
 
     return df_users
 
@@ -92,8 +92,8 @@ def add_last_play_info(df_users, df_events):
     df_last_event['User Id'] = df_last_event.index  # reset index
 
     # merge other data fields on to last_event
-    df_last_event = pd.merge(df_last_event, df_events,
-                             how='left', on='User Id')
+    df_last_event = df_last_event.merge(df_events,
+                                        how='left', on='User Id')
     # filter the resulting table for only the last events (but now with more information on the last events)
     df_last_event = df_last_event[df_last_event['Created_x']
                                   == df_last_event['Created_y']]
@@ -109,7 +109,7 @@ def add_last_play_info(df_users, df_events):
     # issue: if multiple event types occur at exactly the same time, both will be in the data set
 
     # join information to users data frame
-    df_users = pd.merge(df_users, df_last_event, how='left', on='Id')
+    df_users = df_users.merge(df_last_event, how='left', on='Id')
     return df_users
 
 
@@ -139,8 +139,8 @@ def add_last_level_completion_info(df_users, df_levels):
     # reset index
     df_last_level['User Id'] = df_last_level.index
     # merge rest of data on last event date
-    df_last_level = pd.merge(df_last_level, df_levels,
-                             how='left', on='User Id')
+    df_last_level = df_last_level.merge(df_levels,
+                                        how='left', on='User Id')
     # select only the last event (but now with detail)
     df_last_level = df_last_level[df_last_level['Created_x']
                                   == df_last_level['Created_y']]
@@ -154,7 +154,7 @@ def add_last_level_completion_info(df_users, df_levels):
         index=str, columns={'User Id': 'Id', 'Playtime (s)': 'last_level_time_s', 'Practice': 'last_level_was_practice', 'Level': 'last_level_played'})
 
     # merge level data on to user data
-    df_users = pd.merge(df_users, df_last_level, how='left', on='Id')
+    df_users = df_users.merge(df_last_level, how='left', on='Id')
     return df_users
 
 
@@ -180,8 +180,8 @@ def add_last_level_started(df_users, df_l):
     df_last_level_started = df_levels[['User Id', 'Created']].groupby([
                                                                       'User Id']).max()
     df_last_level_started['User Id'] = df_last_level_started.index
-    df_last_level_started = pd.merge(
-        df_last_level_started, df_levels, how='left', on='User Id')
+    df_last_level_started = df_last_level_started.merge(
+        df_levels, how='left', on='User Id')
     # select only the last event (but now with detail)
     df_last_level_started = df_last_level_started[df_last_level_started['Created_x']
                                                   == df_last_level_started['Created_y']]
@@ -189,7 +189,7 @@ def add_last_level_started(df_users, df_l):
     df_last_level_started['Id'] = df_last_level_started['User Id']
     df_last_level_started = df_last_level_started[['Id', 'last_level_started']]
     df_last_level_started = df_last_level_started.drop_duplicates()
-    df_users = pd.merge(df_users, df_last_level_started, how='left', on='Id')
+    df_users = df_users.merge(df_last_level_started, how='left', on='Id')
     return df_users
 
 
@@ -200,8 +200,8 @@ def add_last_campaign_started(df_users, aws=False):
         campaigns = pd.read_csv('../../data/campaign_list.csv')
     campaigns = campaigns.rename(index=str, columns={
                                  'Campaign': 'last_campaign_started', 'Level': 'last_level_started'})
-    df_users = pd.merge(df_users, campaigns, how='left',
-                        on='last_level_started')
+    df_users = df_users.merge(campaigns, how='left',
+                              on='last_level_started')
     df_users['last_campaign_started'] = df_users['last_campaign_started'].fillna(
         'other')
     return df_users
@@ -224,7 +224,7 @@ def add_group_start_and_complete_date(df_users, df_e, level_group, name, byname=
     df_events_group_max['date_completed_' +
                         name] = pd.to_datetime(df_events_group_max['Created'])
     df_events_group_max.drop(['Created'], axis=1, inplace=True)
-    df_users = pd.merge(df_users, df_events_group_max, how='left', on='Id')
+    df_users = df_users.merge(df_events_group_max, how='left', on='Id')
 
     # take min date and add to dataframe
     df_events_group_min = df_events_group[[
@@ -234,7 +234,7 @@ def add_group_start_and_complete_date(df_users, df_e, level_group, name, byname=
                         name] = pd.to_datetime(df_events_group_min['Created'])
     df_events_group_min.drop(['Created'], axis=1, inplace=True)
     # merge on user data
-    df_users = pd.merge(df_users, df_events_group_min, how='left', on='Id')
+    df_users = df_users.merge(df_events_group_min, how='left', on='Id')
     return df_users
 
 
@@ -255,7 +255,13 @@ def add_group_completion_num(df_users, df_e, level_group, name, byname=True):
         index=str, columns={'Event Name': 'num_levels_completed_in_' + name})
 
     # merge on user data
-    df_users = pd.merge(df_users, df_events_group_count, how='left', on='Id')
+    df_users = df_users.merge(df_events_group_count, how='left', on='Id')
+    return df_users
+
+
+def add_group_play_time(df_users, name):
+    df_users['avg_time_to_complete_level_' + name] = (
+        df_users['date_completed_' + name] - df_users['date_started_' + name]).dt.seconds / df_users['num_levels_completed_in_' + name]
     return df_users
 
 
@@ -274,8 +280,8 @@ def add_number_special_activities(df_users, df_e, event_type, earliest_date_fiel
     df_users_max_dates = df_users[[
         'Id', earliest_date_field, latest_date_field]]
 
-    df_events_special = pd.merge(
-        df_events_special, df_users_max_dates, how='left', on='Id')
+    df_events_special = df_events_special.merge(
+        df_users_max_dates, how='left', on='Id')
     df_events_special = df_events_special[(df_events_special['event_date'] >=
                                            df_events_special[earliest_date_field]) &
                                           (df_events_special['event_date'] <= df_events_special[latest_date_field])]
@@ -292,7 +298,7 @@ def add_number_special_activities(df_users, df_e, event_type, earliest_date_fiel
     event_count['Id'] = event_count.index.astype(int)
 
     # merge and fill Nans with zeros
-    df_users = pd.merge(df_users, event_count, how='left', on='Id')
+    df_users = df_users.merge(event_count, how='left', on='Id')
     df_users[new_field_name] = df_users[new_field_name].fillna(0)
     df_users[new_field_name] = df_users[new_field_name] / \
         df_users[ref_field]
@@ -330,9 +336,10 @@ def aggregate_small_pop_countries(df_users, n=300):
     # countries = pd.DataFrame(df_users['Country'].value_counts())
     # countries_included = countries[countries['Country'] > n]
     # include = list(countries_included.index)
-    include = ['united-states', 'united-kingdom', 'australia', 'canada', 'germany', 'russia', 'france', 'spain', 'mexico', 'poland', 'taiwan', 'turkey', 'ukraine', 'colombia', 'south-korea', 'netherlands', 'new-zealand', 'japan', 'finland', 'brazil', 'hong-kong', 'norway', 'thailand', 'india', 'sweden', 'united-arab-emirates', 'denmark', 'singapore', 'italy', 'vietnam', 'hungary',
-               'belgium', 'malaysia', 'austria', 'argentina', 'czech-republic', 'israel', 'indonesia', 'lithuania', 'romania', 'portugal', 'philippines', 'greece', 'south-africa', 'peru', 'switzerland', 'belarus', 'venezuela', 'slovakia', 'ireland', 'estonia', 'chile', 'serbia', 'slovenia', 'saudia-arabia', 'kazakhstan', 'bulgaria', 'ecuador', 'egypt', 'croatia', 'iran', 'pakistan', 'macedonia']
-
+    # include = ['united-states', 'united-kingdom', 'australia', 'canada', 'germany', 'russia', 'france', 'spain', 'mexico', 'poland', 'taiwan', 'turkey', 'ukraine', 'colombia', 'south-korea', 'netherlands', 'new-zealand', 'japan', 'finland', 'brazil', 'hong-kong', 'norway', 'thailand', 'india', 'sweden', 'united-arab-emirates', 'denmark', 'singapore', 'italy', 'vietnam', 'hungary',
+    #            'belgium', 'malaysia', 'austria', 'argentina', 'czech-republic', 'israel', 'indonesia', 'lithuania', 'romania', 'portugal', 'philippines', 'greece', 'south-africa', 'peru', 'switzerland', 'belarus', 'venezuela', 'slovakia', 'ireland', 'estonia', 'chile', 'serbia', 'slovenia', 'saudia-arabia', 'kazakhstan', 'bulgaria', 'ecuador', 'egypt', 'croatia', 'iran', 'pakistan', 'macedonia']
+    include = ['united-states', 'united-kingdom',
+               'australia', 'canada', 'germany', 'russia']
     df_users['Country'] = df_users.apply(
         lambda row: row['Country'] if row['Country'] in include else "other_country", axis=1)
 
@@ -415,8 +422,8 @@ def add_coding_language(df_users, df_l, name, level_group, num_levels_col, bynam
         df_levels_l = df_levels_l[['User Id', 'Code Language']].groupby(
             'User Id').count()
         df_levels_l['Id'] = df_levels_l.index
-        df_levels_l = pd.merge(
-            df_levels_l, df_user_num_levels, how='left', on='Id')
+        df_levels_l = df_levels_l.merge(
+            df_user_num_levels, how='left', on='Id')
         df_levels_l[l + name] = df_levels_l['Code Language'] / \
             df_levels_l[num_levels_col]
 
@@ -424,7 +431,7 @@ def add_coding_language(df_users, df_l, name, level_group, num_levels_col, bynam
 
         df_levels_l.drop(['Code Language', num_levels_col],
                          axis=1, inplace=True)
-        df_users = pd.merge(df_users, df_levels_l, how='left', on='Id')
+        df_users = df_users.merge(df_levels_l, how='left', on='Id')
         df_users[l + name] = df_users[l + name].fillna(0)
 
     return df_users, languages
@@ -439,8 +446,8 @@ def add_number_logins(df_users, df_e, name, min_date_col, max_date_col, time_thr
     df_users_max_dates = df_users[['Id', min_date_col, max_date_col]]
     df_users_max_dates = df_users_max_dates.rename(
         index=str, columns={'Id': 'User Id'})
-    df_events = pd.merge(df_events, df_users_max_dates,
-                         how='left', on='User Id')
+    df_events = df_events.merge(df_users_max_dates,
+                                how='left', on='User Id')
     # df_events = df_events[(df_events['Created'] >= df_events[min_date_col]) & (df_events['Created'] <= df_events[max_date_col])]
 
     # in two steps:
@@ -466,7 +473,7 @@ def add_number_logins(df_users, df_e, name, min_date_col, max_date_col, time_thr
     df_events = df_events[['User Id', 'lag_hours']].groupby('User Id').count()
     df_events['Id'] = df_events.index
 
-    df_users = pd.merge(df_users, df_events, how='left', on='Id')
+    df_users = df_users.merge(df_events, how='left', on='Id')
     df_users['logins_' + name] = df_users['lag_hours'].fillna(0)
     df_users.drop('lag_hours', axis=1, inplace=True)
     return df_users
@@ -486,6 +493,8 @@ def chunk_up_dataset2(choice):
         d[60] = range(30, 60)
     elif choice == 20:
         d[6] = range(6)
+    elif choice == 30:
+        d[12] = range(12)
     return d
 
 
@@ -510,6 +519,11 @@ def make_model_dict(choice):
     elif choice == 20:
         d['Model_predict_at_13'] = [0, 6]
         l = ['Model_predict_at_13']
+
+    elif choice == 30:  # different methodology for predicting 13
+        d['Model_predict_at_13'] = [0, 12]
+        l = ['Model_predict_at_13']
+
     return d, l
 
 
@@ -521,11 +535,14 @@ if __name__ == '__main__':
 
     # aws_march_path = '/home/ec2-user/data/'
     path = march_path
-    df_users, df_levels, df_events = read_files(path, 'train/')
+    df_users, df_levels, df_events = read_files(path, 'test/')
+    print df_users.shape
+
     # df_users, df_levels, df_events = read_files(path, t='')
 
     # clean up and filter user df if necessary
     df_users = cleanup_users(df_users)
+    print df_users.shape
     df_levels = cleanup_levels(df_levels)
     df_levels = add_level_num(df_levels)
 
@@ -534,35 +551,48 @@ if __name__ == '__main__':
 
     min_level_reached = 1  # 7
     df_users = user_filter(df_users, min_level_reached)
+    print df_users.shape
     orig_fields = set(df_users.columns)
 
     # add fields to user df for eda (not to be used in model)
     df_users = add_total_play_time_per_user(
         df_users, df_levels)  # add play time
+    print df_users.shape
     df_users = add_last_play_info(df_users, df_events)
+    print df_users.shape
     df_users = add_active_days(df_users)
+    print df_users.shape
     df_users = add_activity_gap_info(df_users, '2017-10-15')
+    print df_users.shape
     df_users = add_last_level_completion_info(df_users, df_levels)
+    print df_users.shape
     df_users = add_avg_play_per_level(df_users)
+    print df_users.shape
     df_users = add_avg_days_per_level(df_users)
     added_eda_only_fields = set(df_users.columns) - orig_fields
 
     # add fields to user df for target modeling and eda
     df_users = add_last_level_started(df_users, df_levels)
+    print df_users.shape
     df_users = add_last_campaign_started(df_users, aws=False)
+    print df_users.shape
     added_target_fields = set(df_users.columns) - \
         orig_fields - added_eda_only_fields
 
     # add fields to user df for features modeling and eda
     df_users = fill_out_age(df_users)
+    print df_users.shape
     # df_users = add_country_group(df_users)
     df_users = add_english_speaking(df_users)
+    print df_users.shape
     df_users = aggregate_small_pop_countries(df_users)
+    print df_users.shape
     df_users = dummify_countries(df_users)
+    print df_users.shape
     df_users = dummify_ages(df_users)
 
     df_users = drop_unmodeled_fields(df_users)
-
+    print df_users.shape
     added_modeling_fields = set(df_users.columns) - orig_fields - \
         added_eda_only_fields - added_target_fields
 
@@ -576,7 +606,7 @@ if __name__ == '__main__':
     special_names = ['rate_hint_used_', 'rate_hints_clicked_',
                      'rate_hints_next_clicked_', 'rate_started_level_', 'rate_show_problem_alerts_']
 
-    choice = 20
+    choice = 5
     d = chunk_up_dataset2(choice=choice)
     model_dict, model_list = make_model_dict(choice=choice)
 
@@ -585,13 +615,10 @@ if __name__ == '__main__':
         arr_d = arr_d[arr_d > model_dict[model_name][0]]
         arr_d = arr_d[arr_d <= model_dict[model_name][1]]
 
-        # is this filtering too much? Is it in the right place?
-        # df_users = df_users[df_users['Levels Completed']
-        #                     >= model_dict[model_name][1]]
+        df_users = df_users[df_users['Levels Completed'] >= arr_d[-1]]
+        print df_users.shape
         print model_name, arr_d
         for i in arr_d:
-            # df_users = df_users[df_users['Levels Completed'] >= i - 1]
-
             name = "chunk_" + str(i)
             group = d[i]
             df_users = add_group_start_and_complete_date(
@@ -599,13 +626,16 @@ if __name__ == '__main__':
             df_users = add_group_completion_num(
                 df_users, df_events, group, name, byname=False)
 
+            '''new'''
+            df_users = add_group_play_time(df_users, name)
+
             for j in xrange(len(special_actions)):
                 df_users = add_number_special_activities(
                     df_users, df_events, special_actions[j], 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, special_names[j] + name)
 
             df_users = add_number_special_activities(
                 df_users, df_levels, 'Practice', 'date_started_' + name, 'date_completed_' + name, 'num_levels_completed_in_' + name, 'rate_practice_levels_' + name, use_events=False)
-
+            print df_users.shape
             # df_users = add_number_logins(
             #     df_users, df_events, name, 'date_started_' + name, 'date_completed_' + name, time_threshold_hours=1.0)
             # keep the last one in the set
@@ -617,21 +647,26 @@ if __name__ == '__main__':
         # add for entire time period only:
         df_users, language_list = add_coding_language(
             df_users, df_levels, name, i, 'num_levels_completed_in', byname=False)
+        print df_users.shape
         df_users = add_number_logins(
             df_users, df_events, name, 'Date Joined', 'date_completed', time_threshold_hours=1.0)
         if 'Unnamed: 0' in df_users.columns:
             df_users.drop(['Unnamed: 0'], axis=1, inplace=True)
+        print df_users.shape
         # write out csv file for later use
         df_output = df_users.drop(
             ['Date Joined', 'num_levels_completed_in', 'date_completed'], axis=1)
-        df_output.to_csv(path + 'train_to_merge/' + model_name +
+        df_output.to_csv(path + 'test_to_merge/' + model_name +
                          '_users.csv', index=False)
-
+        print df_output.shape
         # drop fields not desired for next output csv
         df_users.drop(['logins_' + name], axis=1, inplace=True)
         for lang in language_list:
             df_users.drop([lang + name], axis=1, inplace=True)
 
+        df_test = pd.read_csv(path + 'test_to_merge/' + model_name +
+                              '_users.csv')
+        print df_test.shape
     print "\n*********** CHOICE = {} ***************\n".format(choice)
     print list(df_output.columns)
     # print "Orig fields are:"

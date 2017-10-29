@@ -17,6 +17,11 @@ def turn_off_warnings():
     warnings.warn = warn
 
 
+def filter_already_dropped(df, num_level):
+    df = df[df['Levels Completed'] >= num_level]
+    return df
+
+
 def filter_missing(df):
     '''
     removes rows of data with any missing values
@@ -25,7 +30,7 @@ def filter_missing(df):
     return df.dropna(axis=0, how='any')
 
 
-def categorize_by_level_num(level_nums, num_cats, threshold=12):
+def categorize_by_level_num(level_nums, num_cats, threshold=13):
     '''
     For now, use number of levels, but later do by last campaign
     campaigns = pd.read_csv('../data/campaign_list.csv')
@@ -99,6 +104,71 @@ def drop_unnamed(df):
     return df
 
 
+def drop_countries(df):
+    countries = ['argentina', 'australia', 'austria', 'belarus',
+                 'belgium', 'brazil', 'bulgaria', 'canada',
+                 'chile', 'colombia', 'croatia', 'czech-republic',
+                 'denmark', 'ecuador', 'egypt', 'estonia',
+                 'finland', 'germany', 'greece',
+                 'hong-kong', 'hungary', 'india', 'indonesia',
+                 'iran', 'ireland', 'israel', 'italy',
+                 'japan', 'kazakhstan', 'lithuania', 'macedonia',
+                 'malaysia', 'mexico', 'netherlands', 'new-zealand',
+                 'norway', 'other_country', 'pakistan', 'peru',
+                 'philippines', 'poland', 'portugal',
+                 'romania', 'saudia-arabia', 'serbia', 'singapore',
+                 'slovakia', 'slovenia', 'south-africa', 'south-korea',
+                 'spain', 'sweden', 'switzerland', 'taiwan', 'thailand',
+                 'turkey', 'ukraine', 'united-arab-emirates',
+                 'venezuela', 'vietnam', 'united-kingdom', 'russia', 'france',
+                 'united-states'
+                 ]
+    for c in countries:
+        if c in df.columns:
+            df.drop(c, axis=1, inplace=True)
+    return df
+
+
+def drop_ages(df):
+    ages = ['13-15',
+            '16-17',
+            '18-24',
+            '25-34',
+            '35-44',
+            '45-100',
+            'other_age']
+    for age in ages:
+        if age in df.columns:
+            df.drop(age, axis=1, inplace=True)
+    return df
+
+
+'''functionality moved upstream '''
+# def build_up_12(df):
+#     df['pythonchunk_12'] = df['pythonchunk_12'] > .5
+#
+#     drop_these = [
+#         # 'Signed Up',
+#         # 'Paid Subscription',
+#         # 'english_speaking',
+#         # 'avg_time_to_complete_level_chunk_12'
+#         # 'rate_hint_used_chunk_12',
+#         # 'rate_hints_clicked_chunk_12',
+#         # 'rate_hints_next_clicked_chunk_12',
+#         # 'rate_started_level_chunk_12',
+#         # 'rate_show_problem_alerts_chunk_12',
+#         # 'rate_practice_levels_chunk_12',
+#         'luachunk_12',
+#         # 'pythonchunk_12',
+#         'javachunk_12',
+#         'javascriptchunk_12',
+#         'coffeescriptchunk_12',
+#         # 'logins_chunk_12'
+#     ]
+#     df.drop(drop_these, axis=1, inplace=True)
+#     return df
+
+
 def extreme_filter(X):
     '''
     Make a very simple version of X to test that model is running
@@ -126,56 +196,73 @@ def print_scores(y_true, y_pred):
     # print "\tF1 score for each class = {} \n\tF1 score, micro = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(f1_score_none, f1_score_micro, f1_score_macro, f1_score_weighted)
     print "\nThe confusion matrix is:"
     print "\tTN \tFP\n\tFN\tTP"
-    print confusion_matrix(y_true, y_pred)
+    con_mat = confusion_matrix(y_true, y_pred)
+    print con_mat
+    con_mat_total = np.sum(con_mat) * 1.0
+    print np.around(con_mat[0, 0] / con_mat_total, 2), np.around(con_mat[0, 1] / con_mat_total, 2)
+    print np.around(con_mat[1, 0] / con_mat_total, 2), np.around(con_mat[1, 1] / con_mat_total, 2)
 
 
 def model_multi_log_reg(X_train_scaled, y_train, name, X_test, y_test):
     '''
     Model with a multinomial logistic regression and print results
     '''
-    # For multiclass problems, only ‘newton-cg’, ‘sag’, ‘saga’ and ‘lbfgs’
     multi_lr = LogisticRegression(
         multi_class='multinomial', solver='sag', max_iter=1000, class_weight='balanced')
     multi_lr.fit(X_train_scaled, y_train)
 
-    print "On TRAIN data:"
-    y_predict = multi_lr.predict(X_train_scaled)
-    print "\nThe Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
-    print_scores(y_train, y_predict)
-
-    print "On TEST data:"
-    y_predict = multi_lr.predict(X_test)
-    print "\nThe Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
-    print_scores(y_test, y_predict)
+    # print "\nOn TRAIN data:"
+    # y_predict = multi_lr.predict(X_train_scaled)
+    # print "The Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    # print_scores(y_train, y_predict)
+    #
+    # print "\nOn TEST data:"
+    # y_predict = multi_lr.predict(X_test)
+    # print "The Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    # print_scores(y_test, y_predict)
 
     return multi_lr.coef_
 
 
-def model_random_forest(X_train, y_train, name, X_test, y_test):
+def model_log_reg_lasso(X_train_scaled, y_train, name, X_test, y_test):
+    '''
+    Model with a multinomial logistic regression and print results
+    '''
+    lrl = LogisticRegression(penalty="l1", C=.5, solver='saga', max_iter=1000)
+    lrl.fit(X_train_scaled, y_train)
+
+    print "\nOn TRAIN data:"
+    y_predict = lrl.predict(X_train_scaled)
+    print "The Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_train, y_predict)
+
+    print "\nOn TEST data:"
+    y_predict = lrl.predict(X_test)
+    print "The Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_test, y_predict)
+
+    return lrl.coef_
+
+
+def model_random_forest_grid(X_train, y_train, name, X_test, y_test, file_name="test"):
     '''
     Model with a random forest and print results
     '''
-    rand_forest = RandomForestClassifier(class_weight="balanced")
-    #n_estimators, max_features="m", max_depth
-    # tuned_parameters = [{'n_estimators': [10, 50, 100, 500], 'max_features': [
-    #     "sqrt", "log2", 0.3, 0.5, 0.7], 'min_samples_leaf':[1, 3, 5]}]
-    tuned_parameters = [{'n_estimators': [50], 'max_features': [
-        "sqrt"], 'min_samples_leaf':[1]}]
-    # tuned_parameters = [{'n_estimators': [10, 20, 30, 50, 75, 100]}]
-    # rand_forest = RandomForestClassifier(class_weight="balanced")
+    # n_estimators, max_features="m", max_depth
+    tuned_parameters = [
+        {'max_features': ["sqrt", 0.3, 0.5, 0.7], 'min_samples_leaf': [1, 3, 5, 10]}]
+
     rand_forest = GridSearchCV(estimator=RandomForestClassifier(
-        class_weight="balanced"), param_grid=tuned_parameters, scoring="accuracy")
-    # rand_forest = GridSearchCV(estimator=RandomForestClassifier(
-    #     class_weight="balanced"), param_grid=tuned_parameters, scoring="accuracy", verbose=100)
+        n_estimators=150), param_grid=tuned_parameters, scoring="accuracy", cv=5)  # verbose=100
     rand_forest.fit(X_train, y_train)
     print "\nGrid search score: {}".format(rand_forest.best_score_)
     print "\nThe best parameters:\n\tn_estimators = {}\n\tmax_features = {}\n\tmin_samples_leaf = {}"\
         .format(rand_forest.best_estimator_.n_estimators, rand_forest.best_estimator_.max_features, rand_forest.best_estimator_.min_samples_leaf)
 
-    tuned_rf = RandomForestClassifier(n_estimators=rand_forest.best_estimator_.n_estimators,
+    tuned_rf = RandomForestClassifier(n_estimators=1000,
                                       max_features=rand_forest.best_estimator_.max_features,
-                                      min_samples_leaf=rand_forest.best_estimator_.min_samples_leaf,
-                                      class_weight="balanced")
+                                      min_samples_leaf=rand_forest.best_estimator_.min_samples_leaf
+                                      )
     tuned_rf.fit(X_train, y_train)
     print "\nOn TRAIN data:"
     y_predict = tuned_rf.predict(X_train)
@@ -188,13 +275,58 @@ def model_random_forest(X_train, y_train, name, X_test, y_test):
     print_scores(y_test, y_predict)
     proba = tuned_rf.predict_proba(X_test)
 
-    #fpr, tpr, thresholds = roc_curve(y_test, proba[:, 1])
+    # fpr, tpr, thresholds = roc_curve(y_test, proba[:, 1])
     auc = roc_auc_score(y_test, proba[:, 1])
     print "\nThe area under the roc curve is: {}\n".format(auc)
 
-    pickle.dump(tuned_rf, open("test.p", "wb"))
+    pickle.dump(tuned_rf, open(file_name + '.p', 'wb'))
 
+    '''baseline model'''
+
+    print "\n************** Baseline **************************\n"
+    if np.sum(y) > len(y) / 2:
+        baseline_y_test = np.ones(y_test.shape)
+    else:
+        baseline_y_test = np.zeros(y_test.shape)
+    print_scores(y_test, baseline_y_test)
     return tuned_rf.feature_importances_, proba
+
+
+def model_random_forest_no_grid(X_train, y_train, name, X_test, y_test, model_weight=None, file_name="test"):
+    '''
+    Model with a random forest and print results
+    '''
+    rand_forest = RandomForestClassifier(
+        n_estimators=100, class_weight=model_weight)
+    rand_forest.fit(X_train, y_train)
+
+    print "\nOn TRAIN data:"
+    y_predict = rand_forest.predict(X_train)
+    print "The Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_train, y_predict)
+
+    print "\nOn TEST data:"
+    y_predict = rand_forest.predict(X_test)
+    print "The Random Forest model {} with {} classes yielded a model with:".format(name, num_labels)
+    print_scores(y_test, y_predict)
+    proba = rand_forest.predict_proba(X_test)
+
+    # fpr, tpr, thresholds = roc_curve(y_test, proba[:, 1])
+    auc = roc_auc_score(y_test, proba[:, 1])
+    print "\nThe area under the roc curve is: {}\n".format(auc)
+
+    pickle.dump(rand_forest, open(file_name + '.p', 'wb'))
+
+    '''baseline model'''
+
+    print "\n************** Baseline **************************\n"
+    if np.sum(y) > len(y) / 2:
+        baseline_y_test = np.ones(y_test.shape)
+    else:
+        baseline_y_test = np.zeros(y_test.shape)
+    print_scores(y_test, baseline_y_test)
+
+    return rand_forest.feature_importances_, proba
 
 
 def rank_features(cols, coefs):
@@ -222,79 +354,63 @@ if __name__ == '__main__':
     august_path = '../../data/august/'
     march_path = '~/galvanize/project/data/march/train/'
     tiny_sample_path = '../../data/tiny_sample/'
-
-    # possibilities for level_predict: [10,15,30,60,100]
-    level_predict = 13
-    csv_name = 'model_predict_at_' + str(level_predict) + '.csv'
+    old_path = '~/galvanize/project/data/march/'
 
     path = march_path
-    df = pd.read_csv(path + csv_name)
 
-    df = drop_unnamed(df)  # unnamed field when read in csv
-    df = filter_missing(df)
+    levels_available = [10, 15, 30, 60, 100]
+    for level_predict in levels_available:
+        csv_name = 'model_predict_at_' + str(level_predict) + '.csv'
+        print "\n______________________________________"
+        print "\t\t*************************"
+        print "\n** Now building model to predict user churn at Level{} **".format(level_predict)
+        print "\t\t*************************"
 
-    # temp!
-    # df.drop(['luachunk_20', 'pythonchunk_20',
-    #  'javascriptchunk_20'], axis=1, inplace=True)
+        df = pd.read_csv(path + csv_name)
 
-    target = 'Levels Completed'
-    # target = 'last_campaign_started'
-    num_labels = 2
-    df, y = fix_target_and_drop_target_fields(df, target)
-    print list(df.columns)
-    y, name = categorize_by_level_num(y, num_labels)
-    # y, name = categorize_by_level_num(y, num_labels, level_predict)
-    # y, name = categorize_by_campaign(y, num_labels)
+        df = drop_unnamed(df)  # unnamed field when read in csv
+        # df = drop_countries(df)  # too much noise
+        # df = drop_ages(df)  # too much noise
+        # df = build_up_12(df)  # keep fields that appear valuable to model
+        # drop users who completed < num_levels
+        df = filter_missing(df)
 
-    features = list(df.columns)
+        target = 'Levels Completed'
+        # target = 'last_campaign_started'
+        num_labels = 2
+        df, y = fix_target_and_drop_target_fields(df, target)
+        print list(df.columns)
+        y, name = categorize_by_level_num(
+            y, num_labels, threshold=level_predict)
+        # y, name = categorize_by_level_num(y, num_labels, level_predict)
+        # y, name = categorize_by_campaign(y, num_labels)
 
-    X = df.values
-    # X = extreme_filter(X).values
+        features = list(df.columns)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
+        X = df.values
 
-    X_train, X_test = train_test_split(X)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y)  # for testing: random_state=42
 
-    ''' Multinomial Logistic Regression '''
-    '''
-    scaler = StandardScaler().fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
+        ''' Random Forest'''
+        # rf_feature_importance, proba = model_random_forest_no_grid(
+        #     X_train, y_train, name, X_test, y_test, model_weight=None, file_name="test4")  # None or "balanced"
 
-    mlr_feature_importance = model_multi_log_reg(
-        X_train_scaled, y_train, name, X_test, y_test)
-    mlr_feature_importance_readable = rank_features(
-        features, mlr_feature_importance)[::-1]
-    print mlr_feature_importance_readable
-    '''
-    ''' Random Forest'''
-    rf_feature_importance, proba = model_random_forest(
-        X_train, y_train, name, X_test, y_test)
+        rf_feature_importance, proba = model_random_forest_grid(
+            X_train, y_train, name, X_test, y_test, file_name="models/model_predict_" + str(level_predict) + "_rf_grid")
 
-    rf_feature_importance_readable = rank_features(
-        features, rf_feature_importance)[::-1]
-    print rf_feature_importance_readable
+        rf_feature_importance_readable = rank_features(
+            features, rf_feature_importance)[::-1]
+        print "\nFeature importance from the Random Forest:"
+        print rf_feature_importance_readable
 
-    '''Random Model'''
-    # compare_with_random_mlr_model(X_train_scaled, y_train)
-    print "\n*************  Random Model  *****************"
-    random_X_train = random_feature(X_train)
-    random_X_test = random_feature(X_test)
+        ''' Multinomial Logistic Regression '''
+        scaler = StandardScaler().fit(X_train)
+        X_train_scaled = scaler.transform(X_train)
 
-    '''baseline model'''
-    baseline_X_train = X_train[:, 2]
-    baseline_X_test = X_test[:, 2]
-
-    '''CHANGE THIS!'''
-
-    # random_y_pred = model_random_forest(
-    #     random_X_train, y_train, name, random_X_test, y_test)
-
-    '''*** Results *** '''
-    '''
-    On TEST data:
-    The Random Forest model categories by level with 2 classes yielded a model with:
-        accuracy = 0.58696554587,
-        precision = 0.671484157865,
-        recall = 0.749379652605
-        f1 - score = 0.708296687189
-    '''
+        mlr_feature_importance = model_multi_log_reg(
+            X_train_scaled, y_train, name, X_test, y_test)
+        mlr_feature_importance_readable = rank_features(
+            features, mlr_feature_importance)[::-1]
+        print "\nFor genearl understanding of direction, feature importance from fitting a Logistic Regression model:"
+        print mlr_feature_importance_readable

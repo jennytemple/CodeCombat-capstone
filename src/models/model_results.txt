@@ -1,0 +1,735 @@
+*************************
+
+** Now building model to predict user churn at Level10 **
+  *************************
+['Signed Up', 'Paid Subscription', 'english_speaking', 'australia', 'canada', 'germany', 'other_country', 'russia', 'united-kingdom', 'united-states', '13-15', '16-17', '18-24', '25-34', '35-44', '45-100', 'other_age', 'avg_time_to_complete_level_chunk_5', 'rate_hint_used_chunk_5', 'rate_hints_clicked_chunk_5', 'rate_hints_next_clicked_chunk_5', 'rate_started_level_chunk_5', 'rate_show_problem_alerts_chunk_5', 'rate_practice_levels_chunk_5', 'pythonchunk_5', 'logins_chunk_5']
+[ 10 999]
+
+Grid search score: 0.711800998923
+
+The best parameters:
+n_estimators = 150
+max_features = sqrt
+min_samples_leaf = 10
+
+On TRAIN data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.726471452355,
+precision = 0.713476715465,
+recall = 0.562559376781
+f1-score = 0.629093516772
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[25247  4756]
+[ 9209 11843]]
+0.49 0.09
+0.18 0.23
+
+On TEST data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.715905752394,
+precision = 0.685475063706,
+recall = 0.547941219264
+f1-score = 0.609040187596
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[8418 1728]
+[3107 3766]]
+0.49 0.1
+0.18 0.22
+
+The area under the roc curve is: 0.764394474744
+
+
+************** Baseline **************************
+
+accuracy = 0.59615723603,
+precision = 0.0,
+recall = 0.0
+f1-score = 0.0
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[10146     0]
+[ 6873     0]]
+0.6 0.0
+0.4 0.0
+
+Feature importance from the Random Forest:
+[['0.273' 'Signed Up' '0.273']
+['0.1921' 'avg_time_to_complete_level_chunk_5' '0.1921']
+['0.1623' 'other_age' '0.1623']
+['0.0834' 'rate_show_problem_alerts_chunk_5' '0.0834']
+['0.0703' 'rate_started_level_chunk_5' '0.0703']
+['0.0406' '13-15' '0.0406']
+['0.0199' '18-24' '0.0199']
+['0.0196' 'english_speaking' '0.0196']
+['0.0182' 'rate_hints_clicked_chunk_5' '0.0182']
+['0.0181' 'united-states' '0.0181']
+['0.0136' 'rate_practice_levels_chunk_5' '0.0136']
+['0.0126' 'logins_chunk_5' '0.0126']
+['0.0124' '25-34' '0.0124']
+['0.0113' 'pythonchunk_5' '0.0113']
+['0.0091' '16-17' '0.0091']
+['0.0084' 'rate_hints_next_clicked_chunk_5' '0.0084']
+['0.0078' 'rate_hint_used_chunk_5' '0.0078']
+['0.0071' 'other_country' '0.0071']
+['0.0053' 'united-kingdom' '0.0053']
+['0.0042' 'germany' '0.0042']
+['0.0033' 'russia' '0.0033']
+['0.002' 'australia' '0.002']
+['0.0017' '35-44' '0.0017']
+['0.0017' 'canada' '0.0017']
+['0.0013' '45-100' '0.0013']
+['0.0007' 'Paid Subscription' '0.0007']]
+
+For genearl understanding of direction, feature importance from fitting a Logistic Regression model:
+[['0.8329' 'rate_started_level_chunk_5' '0.8329']
+['-0.4725' 'rate_show_problem_alerts_chunk_5' '0.4725']
+['-0.2991' 'Signed Up' '0.2991']
+['-0.1732' 'rate_hints_clicked_chunk_5' '0.1732']
+['0.167' 'logins_chunk_5' '0.167']
+['0.1353' 'rate_hints_next_clicked_chunk_5' '0.1353']
+['0.1231' 'rate_hint_used_chunk_5' '0.1231']
+['0.0914' 'Paid Subscription' '0.0914']
+['-0.0543' 'english_speaking' '0.0543']
+['-0.0415' 'avg_time_to_complete_level_chunk_5' '0.0415']
+['-0.0411' 'pythonchunk_5' '0.0411']
+['0.0408' 'germany' '0.0408']
+['-0.0351' 'united-states' '0.0351']
+['-0.0319' 'other_age' '0.0319']
+['0.0237' 'russia' '0.0237']
+['0.0236' 'rate_practice_levels_chunk_5' '0.0236']
+['0.0232' '25-34' '0.0232']
+['0.021' 'united-kingdom' '0.021']
+['0.0165' '18-24' '0.0165']
+['0.0157' '16-17' '0.0157']
+['0.0134' 'australia' '0.0134']
+['0.0109' '35-44' '0.0109']
+['0.009' '13-15' '0.009']
+['-0.0066' '45-100' '0.0066']
+['-0.0043' 'other_country' '0.0043']
+['0.0019' 'canada' '0.0019']]
+
+______________________________________
+  *************************
+
+** Now building model to predict user churn at Level15 **
+  *************************
+['Signed Up', 'Paid Subscription', 'english_speaking', 'australia', 'canada', 'germany', 'other_country', 'russia', 'united-kingdom', 'united-states', '13-15', '16-17', '18-24', '25-34', '35-44', '45-100', 'other_age', 'avg_time_to_complete_level_chunk_10', 'rate_hint_used_chunk_10', 'rate_hints_clicked_chunk_10', 'rate_hints_next_clicked_chunk_10', 'rate_started_level_chunk_10', 'rate_show_problem_alerts_chunk_10', 'rate_practice_levels_chunk_10', 'pythonchunk_10', 'logins_chunk_10', 'avg_time_to_complete_level_chunk_5', 'rate_hint_used_chunk_5', 'rate_hints_clicked_chunk_5', 'rate_hints_next_clicked_chunk_5', 'rate_started_level_chunk_5', 'rate_show_problem_alerts_chunk_5', 'rate_practice_levels_chunk_5']
+[ 15 999]
+
+Grid search score: 0.71512460613
+
+The best parameters:
+n_estimators = 150
+max_features = sqrt
+min_samples_leaf = 10
+
+On TRAIN data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.760909004106,
+precision = 0.83698684735,
+recall = 0.313479623824
+f1-score = 0.456125108601
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[13838   409]
+[ 4599  2100]]
+0.66 0.02
+0.22 0.1
+
+On TEST data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.714122028072,
+precision = 0.657571623465,
+recall = 0.216434665469
+f1-score = 0.325675675676
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[4504  251]
+[1745  482]]
+0.65 0.04
+0.25 0.07
+
+The area under the roc curve is: 0.728228787602
+
+
+************** Baseline **************************
+
+accuracy = 0.681036952163,
+precision = 0.0,
+recall = 0.0
+f1-score = 0.0
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[4755    0]
+[2227    0]]
+0.68 0.0
+0.32 0.0
+
+Feature importance from the Random Forest:
+[['0.1644' 'Signed Up' '0.1644']
+['0.1357' 'avg_time_to_complete_level_chunk_10' '0.1357']
+['0.1133' 'avg_time_to_complete_level_chunk_5' '0.1133']
+['0.0845' 'other_age' '0.0845']
+['0.067' 'rate_started_level_chunk_10' '0.067']
+['0.0616' 'rate_started_level_chunk_5' '0.0616']
+['0.0598' 'rate_show_problem_alerts_chunk_10' '0.0598']
+['0.0458' 'rate_show_problem_alerts_chunk_5' '0.0458']
+['0.0373' '13-15' '0.0373']
+['0.031' 'logins_chunk_10' '0.031']
+['0.0238' 'rate_hints_clicked_chunk_10' '0.0238']
+['0.0187' 'rate_hints_next_clicked_chunk_10' '0.0187']
+['0.0155' 'rate_hints_clicked_chunk_5' '0.0155']
+['0.0139' 'rate_hint_used_chunk_10' '0.0139']
+['0.0137' 'english_speaking' '0.0137']
+['0.0136' 'Paid Subscription' '0.0136']
+['0.0102' 'rate_practice_levels_chunk_5' '0.0102']
+['0.0097' 'pythonchunk_10' '0.0097']
+['0.0095' 'other_country' '0.0095']
+['0.0093' 'rate_practice_levels_chunk_10' '0.0093']
+['0.0091' 'united-states' '0.0091']
+['0.0082' 'rate_hints_next_clicked_chunk_5' '0.0082']
+['0.0072' 'rate_hint_used_chunk_5' '0.0072']
+['0.006' '18-24' '0.006']
+['0.0058' 'united-kingdom' '0.0058']
+['0.0052' '16-17' '0.0052']
+['0.0052' 'germany' '0.0052']
+['0.0045' '25-34' '0.0045']
+['0.0031' 'russia' '0.0031']
+['0.0022' 'australia' '0.0022']
+['0.0021' '35-44' '0.0021']
+['0.0019' 'canada' '0.0019']
+['0.0014' '45-100' '0.0014']]
+
+For genearl understanding of direction, feature importance from fitting a Logistic Regression model:
+[['0.5142' 'rate_started_level_chunk_10' '0.5142']
+['0.3983' 'rate_started_level_chunk_5' '0.3983']
+['-0.3219' 'Signed Up' '0.3219']
+['0.2092' 'rate_hints_next_clicked_chunk_10' '0.2092']
+['0.1948' 'rate_hints_clicked_chunk_10' '0.1948']
+['-0.1834' 'rate_show_problem_alerts_chunk_10' '0.1834']
+['0.1246' 'rate_hint_used_chunk_10' '0.1246']
+['0.1201' 'Paid Subscription' '0.1201']
+['0.0873' 'rate_hints_clicked_chunk_5' '0.0873']
+['-0.0858' 'rate_show_problem_alerts_chunk_5' '0.0858']
+['0.0726' 'rate_practice_levels_chunk_10' '0.0726']
+['-0.0515' 'rate_practice_levels_chunk_5' '0.0515']
+['-0.0481' 'english_speaking' '0.0481']
+['-0.0383' '18-24' '0.0383']
+['0.0355' '13-15' '0.0355']
+['-0.0338' '35-44' '0.0338']
+['0.0337' 'germany' '0.0337']
+['-0.0301' 'logins_chunk_10' '0.0301']
+['-0.0267' 'united-kingdom' '0.0267']
+['0.0229' 'other_age' '0.0229']
+['-0.0199' '25-34' '0.0199']
+['-0.0156' '16-17' '0.0156']
+['0.0125' 'canada' '0.0125']
+['0.011' 'rate_hint_used_chunk_5' '0.011']
+['-0.0088' 'avg_time_to_complete_level_chunk_5' '0.0088']
+['-0.0081' 'russia' '0.0081']
+['0.0073' 'united-states' '0.0073']
+['-0.0072' 'pythonchunk_10' '0.0072']
+['-0.0055' '45-100' '0.0055']
+['0.0047' 'australia' '0.0047']
+['0.0033' 'rate_hints_next_clicked_chunk_5' '0.0033']
+['-0.0025' 'other_country' '0.0025']
+['0.0009' 'avg_time_to_complete_level_chunk_10' '0.0009']]
+
+______________________________________
+  *************************
+
+** Now building model to predict user churn at Level30 **
+  *************************
+['Signed Up', 'Paid Subscription', 'english_speaking', 'australia', 'canada', 'germany', 'other_country', 'russia', 'united-kingdom', 'united-states', '13-15', '16-17', '18-24', '25-34', '35-44', '45-100', 'other_age', 'avg_time_to_complete_level_chunk_15', 'rate_hint_used_chunk_15', 'rate_hints_clicked_chunk_15', 'rate_hints_next_clicked_chunk_15', 'rate_started_level_chunk_15', 'rate_show_problem_alerts_chunk_15', 'rate_practice_levels_chunk_15', 'pythonchunk_15', 'logins_chunk_15', 'avg_time_to_complete_level_chunk_10', 'rate_hint_used_chunk_10', 'rate_hints_clicked_chunk_10', 'rate_hints_next_clicked_chunk_10', 'rate_started_level_chunk_10', 'rate_show_problem_alerts_chunk_10', 'rate_practice_levels_chunk_10', 'avg_time_to_complete_level_chunk_5', 'rate_hint_used_chunk_5', 'rate_hints_clicked_chunk_5', 'rate_hints_next_clicked_chunk_5', 'rate_started_level_chunk_5', 'rate_show_problem_alerts_chunk_5', 'rate_practice_levels_chunk_5']
+[ 30 999]
+
+Grid search score: 0.868208955224
+
+The best parameters:
+n_estimators = 150
+max_features = sqrt
+min_samples_leaf = 3
+
+On TRAIN data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.901791044776,
+precision = 0.961847389558,
+recall = 0.428443649374
+f1-score = 0.592821782178
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[5563   19]
+[ 639  479]]
+0.83 0.0
+0.1 0.07
+
+On TEST data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.869740376007,
+precision = 0.814159292035,
+recall = 0.254143646409
+f1-score = 0.387368421053
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[1851   21]
+[ 270   92]]
+0.83 0.01
+0.12 0.04
+
+The area under the roc curve is: 0.806576710582
+
+
+************** Baseline **************************
+
+accuracy = 0.837958818263,
+precision = 0.0,
+recall = 0.0
+f1-score = 0.0
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[1872    0]
+[ 362    0]]
+0.84 0.0
+0.16 0.0
+
+Feature importance from the Random Forest:
+[['0.094' 'rate_practice_levels_chunk_15' '0.094']
+['0.0795' 'avg_time_to_complete_level_chunk_15' '0.0795']
+['0.0783' 'avg_time_to_complete_level_chunk_5' '0.0783']
+['0.0755' 'avg_time_to_complete_level_chunk_10' '0.0755']
+['0.0632' 'rate_started_level_chunk_15' '0.0632']
+['0.0486' 'rate_show_problem_alerts_chunk_15' '0.0486']
+['0.0458' 'rate_show_problem_alerts_chunk_10' '0.0458']
+['0.0452' 'other_age' '0.0452']
+['0.0396' 'rate_started_level_chunk_10' '0.0396']
+['0.0317' 'rate_hints_clicked_chunk_15' '0.0317']
+['0.0309' 'rate_started_level_chunk_5' '0.0309']
+['0.0287' 'rate_practice_levels_chunk_10' '0.0287']
+['0.0286' 'rate_show_problem_alerts_chunk_5' '0.0286']
+['0.0284' 'rate_hint_used_chunk_15' '0.0284']
+['0.0279' 'rate_hints_next_clicked_chunk_15' '0.0279']
+['0.0262' 'logins_chunk_15' '0.0262']
+['0.0258' 'Signed Up' '0.0258']
+['0.0246' 'Paid Subscription' '0.0246']
+['0.0167' 'rate_hints_clicked_chunk_10' '0.0167']
+['0.0138' 'rate_hint_used_chunk_10' '0.0138']
+['0.0135' 'rate_hints_next_clicked_chunk_10' '0.0135']
+['0.0121' '25-34' '0.0121']
+['0.0112' 'pythonchunk_15' '0.0112']
+['0.0105' '18-24' '0.0105']
+['0.0104' 'english_speaking' '0.0104']
+['0.0098' 'other_country' '0.0098']
+['0.0093' 'rate_hints_clicked_chunk_5' '0.0093']
+['0.0093' 'rate_hints_next_clicked_chunk_5' '0.0093']
+['0.0091' '13-15' '0.0091']
+['0.0085' 'rate_hint_used_chunk_5' '0.0085']
+['0.0085' 'united-states' '0.0085']
+['0.0062' 'rate_practice_levels_chunk_5' '0.0062']
+['0.0058' '35-44' '0.0058']
+['0.0047' '16-17' '0.0047']
+['0.0041' 'russia' '0.0041']
+['0.0041' 'united-kingdom' '0.0041']
+['0.0033' 'germany' '0.0033']
+['0.0028' '45-100' '0.0028']
+['0.0019' 'australia' '0.0019']
+['0.0017' 'canada' '0.0017']]
+
+For genearl understanding of direction, feature importance from fitting a Logistic Regression model:
+[['0.6387' 'rate_practice_levels_chunk_15' '0.6387']
+['0.4949' 'rate_hints_next_clicked_chunk_15' '0.4949']
+['0.2434' 'rate_started_level_chunk_15' '0.2434']
+['0.2219' 'english_speaking' '0.2219']
+['-0.2212' 'Signed Up' '0.2212']
+['0.2174' 'rate_hint_used_chunk_15' '0.2174']
+['0.217' 'rate_hints_clicked_chunk_15' '0.217']
+['-0.2012' 'rate_show_problem_alerts_chunk_10' '0.2012']
+['0.1992' 'rate_started_level_chunk_10' '0.1992']
+['0.1735' 'rate_hints_next_clicked_chunk_5' '0.1735']
+['0.1434' 'other_country' '0.1434']
+['-0.1426' 'united-kingdom' '0.1426']
+['0.132' 'rate_started_level_chunk_5' '0.132']
+['-0.1251' 'other_age' '0.1251']
+['-0.1107' 'rate_show_problem_alerts_chunk_15' '0.1107']
+['-0.0949' 'united-states' '0.0949']
+['0.0874' '25-34' '0.0874']
+['0.0857' '18-24' '0.0857']
+['0.0851' 'Paid Subscription' '0.0851']
+['-0.0815' 'pythonchunk_15' '0.0815']
+['0.078' 'rate_practice_levels_chunk_10' '0.078']
+['0.0762' 'rate_hints_next_clicked_chunk_10' '0.0762']
+['0.0752' 'germany' '0.0752']
+['0.0701' 'russia' '0.0701']
+['0.0697' '35-44' '0.0697']
+['0.0686' 'rate_hint_used_chunk_5' '0.0686']
+['-0.0654' 'avg_time_to_complete_level_chunk_10' '0.0654']
+['-0.0612' 'avg_time_to_complete_level_chunk_15' '0.0612']
+['0.0546' 'rate_show_problem_alerts_chunk_5' '0.0546']
+['0.0464' 'rate_hints_clicked_chunk_10' '0.0464']
+['0.0348' '45-100' '0.0348']
+['-0.0329' 'australia' '0.0329']
+['0.0291' 'rate_hint_used_chunk_10' '0.0291']
+['0.0252' 'avg_time_to_complete_level_chunk_5' '0.0252']
+['-0.0232' 'rate_practice_levels_chunk_5' '0.0232']
+['-0.0146' 'logins_chunk_15' '0.0146']
+['-0.008' '16-17' '0.008']
+['-0.0068' '13-15' '0.0068']
+['-0.0016' 'canada' '0.0016']
+['0.0016' 'rate_hints_clicked_chunk_5' '0.0016']]
+
+______________________________________
+  *************************
+
+** Now building model to predict user churn at Level60 **
+  *************************
+['Signed Up', 'Paid Subscription', 'english_speaking', 'australia', 'canada', 'germany', 'other_country', 'russia', 'united-kingdom', 'united-states', '13-15', '16-17', '18-24', '25-34', '35-44', '45-100', 'other_age', 'avg_time_to_complete_level_chunk_30', 'rate_hint_used_chunk_30', 'rate_hints_clicked_chunk_30', 'rate_hints_next_clicked_chunk_30', 'rate_started_level_chunk_30', 'rate_show_problem_alerts_chunk_30', 'rate_practice_levels_chunk_30', 'pythonchunk_30', 'logins_chunk_30', 'avg_time_to_complete_level_chunk_15', 'rate_hint_used_chunk_15', 'rate_hints_clicked_chunk_15', 'rate_hints_next_clicked_chunk_15', 'rate_started_level_chunk_15', 'rate_show_problem_alerts_chunk_15', 'rate_practice_levels_chunk_15', 'avg_time_to_complete_level_chunk_10', 'rate_hint_used_chunk_10', 'rate_hints_clicked_chunk_10', 'rate_hints_next_clicked_chunk_10', 'rate_started_level_chunk_10', 'rate_show_problem_alerts_chunk_10', 'rate_practice_levels_chunk_10', 'avg_time_to_complete_level_chunk_5', 'rate_hint_used_chunk_5', 'rate_hints_clicked_chunk_5', 'rate_hints_next_clicked_chunk_5', 'rate_started_level_chunk_5', 'rate_show_problem_alerts_chunk_5', 'rate_practice_levels_chunk_5']
+[ 60 999]
+
+Grid search score: 0.801247771836
+
+The best parameters:
+n_estimators = 150
+max_features = 0.3
+min_samples_leaf = 3
+
+On TRAIN data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.95008912656,
+precision = 0.993333333333,
+recall = 0.846590909091
+f1-score = 0.914110429448
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[768   2]
+[ 54 298]]
+0.68 0.0
+0.05 0.27
+
+On TEST data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.804812834225,
+precision = 0.765957446809,
+recall = 0.585365853659
+f1-score = 0.663594470046
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[229  22]
+[ 51  72]]
+0.61 0.06
+0.14 0.19
+
+The area under the roc curve is: 0.813461600751
+
+
+************** Baseline **************************
+
+accuracy = 0.671122994652,
+precision = 0.0,
+recall = 0.0
+f1-score = 0.0
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[251   0]
+[123   0]]
+0.67 0.0
+0.33 0.0
+
+Feature importance from the Random Forest:
+[['0.1467' 'rate_practice_levels_chunk_30' '0.1467']
+['0.1118' 'rate_started_level_chunk_30' '0.1118']
+['0.068' 'rate_practice_levels_chunk_15' '0.068']
+['0.0601' 'rate_hints_next_clicked_chunk_30' '0.0601']
+['0.0556' 'rate_show_problem_alerts_chunk_30' '0.0556']
+['0.0501' 'rate_hint_used_chunk_30' '0.0501']
+['0.0496' 'rate_hints_clicked_chunk_30' '0.0496']
+['0.0463' 'avg_time_to_complete_level_chunk_10' '0.0463']
+['0.0413' 'avg_time_to_complete_level_chunk_15' '0.0413']
+['0.04' 'avg_time_to_complete_level_chunk_5' '0.04']
+['0.0389' 'avg_time_to_complete_level_chunk_30' '0.0389']
+['0.0262' 'rate_show_problem_alerts_chunk_15' '0.0262']
+['0.0252' 'logins_chunk_30' '0.0252']
+['0.0204' 'rate_show_problem_alerts_chunk_10' '0.0204']
+['0.0202' 'rate_started_level_chunk_15' '0.0202']
+['0.0171' 'rate_started_level_chunk_10' '0.0171']
+['0.0167' 'rate_show_problem_alerts_chunk_5' '0.0167']
+['0.0167' 'rate_practice_levels_chunk_10' '0.0167']
+['0.0138' 'rate_hints_next_clicked_chunk_15' '0.0138']
+['0.0119' 'rate_hints_clicked_chunk_15' '0.0119']
+['0.0094' '25-34' '0.0094']
+['0.0091' 'rate_started_level_chunk_5' '0.0091']
+['0.0085' '16-17' '0.0085']
+['0.0084' 'rate_hint_used_chunk_15' '0.0084']
+['0.0069' 'rate_hint_used_chunk_5' '0.0069']
+['0.0068' 'pythonchunk_30' '0.0068']
+['0.0067' 'rate_hints_next_clicked_chunk_10' '0.0067']
+['0.0064' 'rate_hints_clicked_chunk_5' '0.0064']
+['0.0064' 'english_speaking' '0.0064']
+['0.0057' 'rate_practice_levels_chunk_5' '0.0057']
+['0.0056' 'rate_hints_clicked_chunk_10' '0.0056']
+['0.0054' '13-15' '0.0054']
+['0.0052' 'rate_hints_next_clicked_chunk_5' '0.0052']
+['0.0052' 'rate_hint_used_chunk_10' '0.0052']
+['0.005' 'other_country' '0.005']
+['0.0045' 'united-states' '0.0045']
+['0.0043' 'Paid Subscription' '0.0043']
+['0.0035' '18-24' '0.0035']
+['0.0031' 'russia' '0.0031']
+['0.0021' 'other_age' '0.0021']
+['0.0015' '45-100' '0.0015']
+['0.0011' 'Signed Up' '0.0011']
+['0.0009' '35-44' '0.0009']
+['0.0008' 'united-kingdom' '0.0008']
+['0.0005' 'germany' '0.0005']
+['0.0004' 'canada' '0.0004']
+['0.0001' 'australia' '0.0001']]
+
+For genearl understanding of direction, feature importance from fitting a Logistic Regression model:
+[['0.7498' 'rate_started_level_chunk_30' '0.7498']
+['-0.5945' 'rate_hints_clicked_chunk_15' '0.5945']
+['0.5196' 'rate_hints_next_clicked_chunk_30' '0.5196']
+['0.4626' 'rate_hints_next_clicked_chunk_10' '0.4626']
+['0.4079' 'rate_practice_levels_chunk_30' '0.4079']
+['0.3674' 'rate_hint_used_chunk_30' '0.3674']
+['-0.3519' 'rate_started_level_chunk_10' '0.3519']
+['0.3093' 'rate_hints_next_clicked_chunk_15' '0.3093']
+['-0.2925' 'logins_chunk_30' '0.2925']
+['0.2715' 'rate_started_level_chunk_15' '0.2715']
+['0.2573' 'rate_hints_clicked_chunk_5' '0.2573']
+['-0.2209' 'rate_show_problem_alerts_chunk_15' '0.2209']
+['-0.2195' 'rate_hints_clicked_chunk_10' '0.2195']
+['-0.1974' 'rate_hints_clicked_chunk_30' '0.1974']
+['0.1883' 'english_speaking' '0.1883']
+['-0.1777' 'australia' '0.1777']
+['0.1503' 'rate_practice_levels_chunk_10' '0.1503']
+['0.1444' 'rate_practice_levels_chunk_15' '0.1444']
+['0.1334' 'rate_started_level_chunk_5' '0.1334']
+['-0.1225' '13-15' '0.1225']
+['0.1171' 'rate_show_problem_alerts_chunk_10' '0.1171']
+['-0.1113' 'rate_show_problem_alerts_chunk_30' '0.1113']
+['-0.1097' 'rate_hints_next_clicked_chunk_5' '0.1097']
+['0.0955' 'rate_hint_used_chunk_5' '0.0955']
+['-0.0943' 'avg_time_to_complete_level_chunk_5' '0.0943']
+['0.0934' 'other_country' '0.0934']
+['0.0896' 'russia' '0.0896']
+['0.088' '25-34' '0.088']
+['0.0867' '16-17' '0.0867']
+['0.0859' 'rate_show_problem_alerts_chunk_5' '0.0859']
+['-0.069' 'canada' '0.069']
+['-0.0612' 'pythonchunk_30' '0.0612']
+['-0.0552' 'united-states' '0.0552']
+['-0.0516' 'other_age' '0.0516']
+['-0.0505' 'rate_hint_used_chunk_10' '0.0505']
+['-0.0427' 'avg_time_to_complete_level_chunk_30' '0.0427']
+['-0.0422' 'avg_time_to_complete_level_chunk_15' '0.0422']
+['0.0378' 'avg_time_to_complete_level_chunk_10' '0.0378']
+['-0.0339' 'united-kingdom' '0.0339']
+['-0.0302' 'Paid Subscription' '0.0302']
+['0.0302' 'germany' '0.0302']
+['0.0243' '18-24' '0.0243']
+['-0.0231' 'rate_hint_used_chunk_15' '0.0231']
+['-0.0184' 'Signed Up' '0.0184']
+['0.018' '35-44' '0.018']
+['0.0159' 'rate_practice_levels_chunk_5' '0.0159']
+['-0.0048' '45-100' '0.0048']]
+
+______________________________________
+  *************************
+
+** Now building model to predict user churn at Level100 **
+  *************************
+['Signed Up', 'Paid Subscription', 'english_speaking', 'australia', 'canada', 'germany', 'other_country', 'russia', 'united-kingdom', 'united-states', '13-15', '16-17', '18-24', '25-34', '35-44', '45-100', 'other_age', 'avg_time_to_complete_level_chunk_60', 'rate_hint_used_chunk_60', 'rate_hints_clicked_chunk_60', 'rate_hints_next_clicked_chunk_60', 'rate_started_level_chunk_60', 'rate_show_problem_alerts_chunk_60', 'rate_practice_levels_chunk_60', 'pythonchunk_60', 'logins_chunk_60', 'avg_time_to_complete_level_chunk_30', 'rate_hint_used_chunk_30', 'rate_hints_clicked_chunk_30', 'rate_hints_next_clicked_chunk_30', 'rate_started_level_chunk_30', 'rate_show_problem_alerts_chunk_30', 'rate_practice_levels_chunk_30', 'avg_time_to_complete_level_chunk_15', 'rate_hint_used_chunk_15', 'rate_hints_clicked_chunk_15', 'rate_hints_next_clicked_chunk_15', 'rate_started_level_chunk_15', 'rate_show_problem_alerts_chunk_15', 'rate_practice_levels_chunk_15', 'avg_time_to_complete_level_chunk_10', 'rate_hint_used_chunk_10', 'rate_hints_clicked_chunk_10', 'rate_hints_next_clicked_chunk_10', 'rate_started_level_chunk_10', 'rate_show_problem_alerts_chunk_10', 'rate_practice_levels_chunk_10', 'avg_time_to_complete_level_chunk_5', 'rate_hint_used_chunk_5', 'rate_hints_clicked_chunk_5', 'rate_hints_next_clicked_chunk_5', 'rate_started_level_chunk_5', 'rate_show_problem_alerts_chunk_5', 'rate_practice_levels_chunk_5']
+[100 999]
+
+Grid search score: 0.755263157895
+
+The best parameters:
+n_estimators = 150
+max_features = 0.7
+min_samples_leaf = 1
+
+On TRAIN data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 1.0,
+precision = 1.0,
+recall = 1.0
+f1-score = 1.0
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[243   0]
+[  0 137]]
+0.64 0.0
+0.0 0.36
+
+On TEST data:
+The Random Forest model categories by level with 2 classes yielded a model with:
+accuracy = 0.779527559055,
+precision = 0.810810810811,
+recall = 0.588235294118
+f1-score = 0.681818181818
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[69  7]
+[21 30]]
+0.54 0.06
+0.17 0.24
+
+The area under the roc curve is: 0.834236326109
+
+
+************** Baseline **************************
+
+accuracy = 0.59842519685,
+precision = 0.0,
+recall = 0.0
+f1-score = 0.0
+
+The confusion matrix is:
+TN 	FP
+FN	TP
+[[76  0]
+[51  0]]
+0.6 0.0
+0.4 0.0
+
+Feature importance from the Random Forest:
+[['0.1635' 'rate_started_level_chunk_60' '0.1635']
+['0.1076' 'rate_practice_levels_chunk_60' '0.1076']
+['0.0478' 'rate_show_problem_alerts_chunk_30' '0.0478']
+['0.0465' 'avg_time_to_complete_level_chunk_30' '0.0465']
+['0.0428' 'avg_time_to_complete_level_chunk_10' '0.0428']
+['0.0355' 'avg_time_to_complete_level_chunk_15' '0.0355']
+['0.0345' 'rate_started_level_chunk_30' '0.0345']
+['0.0323' 'avg_time_to_complete_level_chunk_60' '0.0323']
+['0.031' 'rate_hint_used_chunk_30' '0.031']
+['0.0289' 'avg_time_to_complete_level_chunk_5' '0.0289']
+['0.0287' 'logins_chunk_60' '0.0287']
+['0.0268' 'rate_hints_next_clicked_chunk_60' '0.0268']
+['0.0265' 'rate_hints_clicked_chunk_30' '0.0265']
+['0.0263' 'rate_show_problem_alerts_chunk_60' '0.0263']
+['0.0259' 'rate_hints_clicked_chunk_60' '0.0259']
+['0.0256' 'rate_hints_next_clicked_chunk_30' '0.0256']
+['0.0221' 'rate_hint_used_chunk_60' '0.0221']
+['0.0198' 'rate_show_problem_alerts_chunk_15' '0.0198']
+['0.0192' 'rate_practice_levels_chunk_15' '0.0192']
+['0.0175' 'rate_practice_levels_chunk_30' '0.0175']
+['0.0166' 'pythonchunk_60' '0.0166']
+['0.0151' 'rate_started_level_chunk_15' '0.0151']
+['0.0121' 'rate_started_level_chunk_10' '0.0121']
+['0.0114' 'rate_show_problem_alerts_chunk_5' '0.0114']
+['0.0107' 'rate_hints_clicked_chunk_15' '0.0107']
+['0.0107' 'rate_hints_next_clicked_chunk_15' '0.0107']
+['0.0104' 'rate_hints_clicked_chunk_10' '0.0104']
+['0.0103' 'rate_show_problem_alerts_chunk_10' '0.0103']
+['0.0087' 'rate_hints_next_clicked_chunk_10' '0.0087']
+['0.0086' 'rate_practice_levels_chunk_10' '0.0086']
+['0.0083' '25-34' '0.0083']
+['0.0069' 'rate_hint_used_chunk_15' '0.0069']
+['0.0056' 'rate_started_level_chunk_5' '0.0056']
+['0.0052' 'english_speaking' '0.0052']
+['0.0049' 'canada' '0.0049']
+['0.0042' 'other_country' '0.0042']
+['0.0037' '13-15' '0.0037']
+['0.0035' 'rate_hint_used_chunk_10' '0.0035']
+['0.0035' 'russia' '0.0035']
+['0.0033' 'rate_practice_levels_chunk_5' '0.0033']
+['0.0032' '16-17' '0.0032']
+['0.0032' 'rate_hints_clicked_chunk_5' '0.0032']
+['0.003' 'united-states' '0.003']
+['0.0029' 'rate_hints_next_clicked_chunk_5' '0.0029']
+['0.0022' '18-24' '0.0022']
+['0.0021' 'rate_hint_used_chunk_5' '0.0021']
+['0.0019' 'united-kingdom' '0.0019']
+['0.0018' 'Paid Subscription' '0.0018']
+['0.0016' '35-44' '0.0016']
+['0.0016' 'Signed Up' '0.0016']
+['0.0014' 'other_age' '0.0014']
+['0.0011' 'germany' '0.0011']
+['0.001' 'australia' '0.001']
+['0.0008' '45-100' '0.0008']]
+
+For genearl understanding of direction, feature importance from fitting a Logistic Regression model:
+[['0.6911' 'rate_hints_clicked_chunk_60' '0.6911']
+['0.6763' 'rate_started_level_chunk_60' '0.6763']
+['0.5092' 'rate_practice_levels_chunk_60' '0.5092']
+['-0.4015' 'rate_hint_used_chunk_15' '0.4015']
+['0.3595' 'rate_started_level_chunk_10' '0.3595']
+['-0.2984' 'rate_show_problem_alerts_chunk_60' '0.2984']
+['-0.2863' 'logins_chunk_60' '0.2863']
+['0.2789' 'english_speaking' '0.2789']
+['-0.2254' 'rate_practice_levels_chunk_10' '0.2254']
+['-0.2182' 'Paid Subscription' '0.2182']
+['-0.196' '13-15' '0.196']
+['-0.1835' 'rate_started_level_chunk_15' '0.1835']
+['0.1778' 'avg_time_to_complete_level_chunk_30' '0.1778']
+['-0.1699' 'rate_show_problem_alerts_chunk_5' '0.1699']
+['0.1696' 'rate_hint_used_chunk_60' '0.1696']
+['-0.1385' 'rate_hints_next_clicked_chunk_15' '0.1385']
+['0.1379' 'rate_practice_levels_chunk_15' '0.1379']
+['0.1339' 'canada' '0.1339']
+['-0.1304' 'rate_hints_clicked_chunk_30' '0.1304']
+['0.1288' 'rate_hints_next_clicked_chunk_30' '0.1288']
+['0.1169' 'rate_show_problem_alerts_chunk_30' '0.1169']
+['0.1108' '25-34' '0.1108']
+['0.1093' 'russia' '0.1093']
+['-0.1035' 'united-states' '0.1035']
+['0.0977' 'rate_started_level_chunk_5' '0.0977']
+['0.0945' '16-17' '0.0945']
+['-0.0872' 'rate_hint_used_chunk_5' '0.0872']
+['0.0819' 'rate_hints_clicked_chunk_5' '0.0819']
+['-0.0815' 'rate_hint_used_chunk_30' '0.0815']
+['0.0753' 'rate_hint_used_chunk_10' '0.0753']
+['-0.0659' 'rate_hints_next_clicked_chunk_10' '0.0659']
+['0.058' 'avg_time_to_complete_level_chunk_15' '0.058']
+['-0.057' '45-100' '0.057']
+['0.0562' 'rate_show_problem_alerts_chunk_15' '0.0562']
+['-0.0526' 'avg_time_to_complete_level_chunk_5' '0.0526']
+['-0.0496' 'rate_practice_levels_chunk_5' '0.0496']
+['-0.0465' 'other_country' '0.0465']
+['-0.0435' 'rate_practice_levels_chunk_30' '0.0435']
+['-0.0433' 'avg_time_to_complete_level_chunk_60' '0.0433']
+['-0.0426' 'Signed Up' '0.0426']
+['0.042' 'rate_hints_next_clicked_chunk_60' '0.042']
+['0.0416' 'other_age' '0.0416']
+['0.0383' 'rate_hints_clicked_chunk_10' '0.0383']
+['0.033' 'rate_started_level_chunk_30' '0.033']
+['0.0296' '35-44' '0.0296']
+['-0.0265' 'pythonchunk_60' '0.0265']
+['-0.0264' 'australia' '0.0264']
+['-0.0241' '18-24' '0.0241']
+['0.0208' 'rate_show_problem_alerts_chunk_10' '0.0208']
+['0.0159' 'avg_time_to_complete_level_chunk_10' '0.0159']
+['-0.0142' 'rate_hints_clicked_chunk_15' '0.0142']
+['0.009' 'united-kingdom' '0.009']
+['-0.0048' 'rate_hints_next_clicked_chunk_5' '0.0048']
+['-0.0034' 'germany' '0.0034']]
+
+In [1]:

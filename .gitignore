@@ -1,0 +1,10 @@
+.DS_Store
+src/test.p
+src/test2.p
+src/test3.p
+src/test4.p
+src/notes.py
+grid_predict_*
+clean_up_older_df.py
+*.pyc
+model_predict*

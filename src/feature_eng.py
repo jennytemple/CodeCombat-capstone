@@ -259,6 +259,12 @@ def add_group_completion_num(df_users, df_e, level_group, name, byname=True):
     return df_users
 
 
+def add_group_play_time(df_users, name):
+    df_users['avg_time_to_complete_level_' + name] = (
+        df_users['date_completed_' + name] - df_users['date_started_' + name]).dt.seconds / df_users['num_levels_completed_in_' + name]
+    return df_users
+
+
 def add_number_special_activities(df_users, df_e, event_type, earliest_date_field, latest_date_field, ref_field, new_field_name, use_events=True):
     '''count the number of times per user a specific event type occured within a time frame defined earlier and add it to the users df '''
     '''primarily built for event dataframe events, but also handles practice field in the level data frame'''
@@ -581,7 +587,8 @@ if __name__ == '__main__':
     path = march_path
     # df_users, df_levels, df_events = read_files(path, 'train/')
     df_users, df_levels, df_events = read_files(path, t='')
-
+    import pdb
+    pdb.set_trace()
     # clean up and filter user df if necessary
     df_users = cleanup_users(df_users)
     df_levels = cleanup_levels(df_levels)
@@ -589,7 +596,8 @@ if __name__ == '__main__':
 
     df_events = cleanup_events(df_events)
     df_events = add_event_num(df_levels, df_events)
-
+    import pdb
+    pdb.set_trace()
     min_level_reached = 1  # 7
     df_users = user_filter(df_users, min_level_reached)
     orig_fields = set(df_users.columns)
@@ -655,6 +663,9 @@ if __name__ == '__main__':
                 df_users, df_events, group, name, byname=False)
             df_users = add_group_completion_num(
                 df_users, df_events, group, name, byname=False)
+
+            '''NEW'''
+            df_users = add_group_play_time(df_users, name)
 
             for j in xrange(len(special_actions)):
                 df_users = add_number_special_activities(
