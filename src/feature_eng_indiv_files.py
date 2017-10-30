@@ -653,6 +653,7 @@ if __name__ == '__main__':
         if 'Unnamed: 0' in df_users.columns:
             df_users.drop(['Unnamed: 0'], axis=1, inplace=True)
         print df_users.shape
+
         # write out csv file for later use
         df_output = df_users.drop(
             ['Date Joined', 'num_levels_completed_in', 'date_completed'], axis=1)
