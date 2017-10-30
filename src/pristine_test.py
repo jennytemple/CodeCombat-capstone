@@ -31,22 +31,23 @@ if __name__ == '__main__':
         df, y = fix_target_and_drop_target_fields(df, 'Levels Completed')
         y, name = categorize_by_level_num(y, 2, threshold=level_predict)
         X = df.values
-
+        scaler = final_model = pickle.load(open('models/feature_scaler', "rb"))
+        X_scaled = scaler.transform(X)
         # read model
         model_to_use = 'models/model_predict_' + \
             str(level_predict) + '_rf_grid.p'
-        final_model = pickle.load(open(model_to_use, "rb"))
+        final_rf_model = pickle.load(open(model_to_use, "rb"))
 
-        y_predict = final_model.predict(X)
-        proba = final_model.predict_proba(X)
+        y_predict_rf = final_rf_model.predict(X)
+        proba_rf = final_rf_model.predict_proba(X)
 
         print"\n\t******************************"
         print"\nUsing this model: {} to make prediction on this data: {}".format(model_to_use, csv_name)
         print"\n\t******************************"
         print "\nThe results of the model on pristine test data:"
-        print_scores(y, y_predict)
+        print_scores(y, y_predict_rf)
         # fpr, tpr, thresholds = roc_curve(y_test, proba[:, 1])
-        auc = roc_auc_score(y, proba[:, 1])
+        auc = roc_auc_score(y, proba_rf[:, 1])
         print "\nThe area under the roc curve is: {}\n".format(auc)
 
         print "\nThe results of the model on baseline (predicting the majority class):"

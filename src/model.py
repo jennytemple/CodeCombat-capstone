@@ -203,6 +203,15 @@ def print_scores(y_true, y_pred):
     print np.around(con_mat[1, 0] / con_mat_total, 2), np.around(con_mat[1, 1] / con_mat_total, 2)
 
 
+def baseline_model(y):
+    print "\n************** Baseline **************************\n"
+    if np.sum(y) > len(y) / 2:
+        baseline_y = np.ones(y.shape)
+    else:
+        baseline_y = np.zeros(y.shape)
+    print_scores(y, baseline_y)
+
+
 def model_multi_log_reg(X_train_scaled, y_train, name, X_test, y_test):
     '''
     Model with a multinomial logistic regression and print results
@@ -224,24 +233,42 @@ def model_multi_log_reg(X_train_scaled, y_train, name, X_test, y_test):
     return multi_lr.coef_
 
 
-def model_log_reg_lasso(X_train_scaled, y_train, name, X_test, y_test):
+def model_log_reg_lasso(X_train_scaled, y_train, name, X_test_scaled, y_test, file_name):
     '''
     Model with a multinomial logistic regression and print results
     '''
-    lrl = LogisticRegression(penalty="l1", C=.5, solver='saga', max_iter=1000)
+    tuned_parameters = [{'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]}]
+    lrl = GridSearchCV(estimator=LogisticRegression(
+        penalty="l1", solver="saga"), param_grid=tuned_parameters, cv=5)
+
+    # lrl = LogisticRegression(
+    #     penalty="l1", C=.5, solver='saga')  # , max_iter=1000
+
     lrl.fit(X_train_scaled, y_train)
 
+    tuned_lrl = LogisticRegression(penalty="l1",
+                                   solver="saga",
+                                   C=lrl.best_estimator_.C)
+    tuned_lrl.fit(X_train_scaled, y_train)
     print "\nOn TRAIN data:"
-    y_predict = lrl.predict(X_train_scaled)
-    print "The Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    y_predict = tuned_lrl.predict(X_train_scaled)
+    print "The Logistic regression with lasso modeled {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_train, y_predict)
 
     print "\nOn TEST data:"
-    y_predict = lrl.predict(X_test)
-    print "The Multinomial logistic regression modeled {} with {} classes yielded a model with:".format(name, num_labels)
+    y_predict = tuned_lrl.predict(X_test_scaled)
+    print "The logistic regression with lasso modeled {} with {} classes yielded a model with:".format(name, num_labels)
     print_scores(y_test, y_predict)
+    proba = tuned_lrl.predict_proba(X_test_scaled)
 
-    return lrl.coef_
+    # fpr, tpr, thresholds = roc_curve(y_test, proba[:, 1])
+    auc = roc_auc_score(y_test, proba[:, 1])
+    print "\nThe area under the roc curve is: {}\n".format(auc)
+
+    pickle.dump(tuned_lrl, open(file_name + '.p', 'wb'))
+    baseline_model(y_test)
+
+    return tuned_lrl.coef_, tuned_lrl.predict_proba(X_test)
 
 
 def model_random_forest_grid(X_train, y_train, name, X_test, y_test, file_name="test"):
@@ -281,14 +308,8 @@ def model_random_forest_grid(X_train, y_train, name, X_test, y_test, file_name="
 
     pickle.dump(tuned_rf, open(file_name + '.p', 'wb'))
 
-    '''baseline model'''
+    baseline_model(y_test)
 
-    print "\n************** Baseline **************************\n"
-    if np.sum(y) > len(y) / 2:
-        baseline_y_test = np.ones(y_test.shape)
-    else:
-        baseline_y_test = np.zeros(y_test.shape)
-    print_scores(y_test, baseline_y_test)
     return tuned_rf.feature_importances_, proba
 
 
@@ -317,14 +338,7 @@ def model_random_forest_no_grid(X_train, y_train, name, X_test, y_test, model_we
 
     pickle.dump(rand_forest, open(file_name + '.p', 'wb'))
 
-    '''baseline model'''
-
-    print "\n************** Baseline **************************\n"
-    if np.sum(y) > len(y) / 2:
-        baseline_y_test = np.ones(y_test.shape)
-    else:
-        baseline_y_test = np.zeros(y_test.shape)
-    print_scores(y_test, baseline_y_test)
+    baseline_model(y_test)
 
     return rand_forest.feature_importances_, proba
 
@@ -393,24 +407,34 @@ if __name__ == '__main__':
             X, y)  # for testing: random_state=42
 
         ''' Random Forest'''
-        # rf_feature_importance, proba = model_random_forest_no_grid(
-        #     X_train, y_train, name, X_test, y_test, model_weight=None, file_name="test4")  # None or "balanced"
+        # # rf_feature_importance, proba = model_random_forest_no_grid(
+        # #     X_train, y_train, name, X_test, y_test, model_weight=None, file_name="test4")  # None or "balanced"
+        #
+        # rf_feature_importance, proba = model_random_forest_grid(
+        #     X_train, y_train, name, X_test, y_test, file_name="models/model_predict_" + str(level_predict) + "_rf_grid")
+        #
+        # rf_feature_importance_readable = rank_features(
+        #     features, rf_feature_importance)[::-1]
+        # print "\nFeature importance from the Random Forest:"
+        # print rf_feature_importance_readable
 
-        rf_feature_importance, proba = model_random_forest_grid(
-            X_train, y_train, name, X_test, y_test, file_name="models/model_predict_" + str(level_predict) + "_rf_grid")
-
-        rf_feature_importance_readable = rank_features(
-            features, rf_feature_importance)[::-1]
-        print "\nFeature importance from the Random Forest:"
-        print rf_feature_importance_readable
-
-        ''' Multinomial Logistic Regression '''
+        ''' Logistic Regression '''
         scaler = StandardScaler().fit(X_train)
+        pickle.dump(scaler, open('models/feature_scaler.p', 'wb'))
         X_train_scaled = scaler.transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
 
-        mlr_feature_importance = model_multi_log_reg(
-            X_train_scaled, y_train, name, X_test, y_test)
-        mlr_feature_importance_readable = rank_features(
-            features, mlr_feature_importance)[::-1]
-        print "\nFor genearl understanding of direction, feature importance from fitting a Logistic Regression model:"
-        print mlr_feature_importance_readable
+        # mlr_feature_importance = model_multi_log_reg(
+        #     X_train_scaled, y_train, name, X_test, y_test)
+        # mlr_feature_importance_readable = rank_features(
+        #     features, mlr_feature_importance)[::-1]
+        # print "\nFor general understanding of direction, feature importance from fitting a Logistic Regression model:"
+        # print mlr_feature_importance_readable
+
+        '''Lasso'''
+        lrl_feature_importance, lrl_proba = model_log_reg_lasso(
+            X_train_scaled, y_train, name, X_test_scaled, y_test, file_name="models/model_predict_" + str(level_predict) + "_lrl")
+        lrl_feature_importance_readable = rank_features(
+            features, lrl_feature_importance)[::-1]
+        print "\nLogistic Regression with Lasso:"
+        print lrl_feature_importance_readable
