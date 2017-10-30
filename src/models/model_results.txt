@@ -732,4 +732,216 @@ For genearl understanding of direction, feature importance from fitting a Logist
 ['-0.0048' 'rate_hints_next_clicked_chunk_5' '0.0048']
 ['-0.0034' 'germany' '0.0034']]
 
+__________________________________________________
+Lasso
+__________________________________________________
+n TRAIN data:
+The Logistic regression with lasso modeled categories by level with 2 classes yielded a model with:
+	accuracy = 0.811051693405,
+	precision = 0.810426540284,
+	recall = 0.498542274052
+	f1-score = 0.617328519856
+
+The confusion matrix is:
+	TN 	FP
+	FN	TP
+[[739  40]
+ [172 171]]
+0.66 0.04
+0.15 0.15
+
+On TEST data:
+The logistic regression with lasso modeled categories by level with 2 classes yielded a model with:
+	accuracy = 0.77807486631,
+	precision = 0.835616438356,
+	recall = 0.462121212121
+	f1-score = 0.59512195122
+
+The confusion matrix is:
+	TN 	FP
+	FN	TP
+[[230  12]
+ [ 71  61]]
+0.61 0.03
+0.19 0.16
+
+The area under the roc curve is: 0.81351740546
+
+
+************** Baseline **************************
+
+	accuracy = 0.647058823529,
+	precision = 0.0,
+	recall = 0.0
+	f1-score = 0.0
+
+The confusion matrix is:
+	TN 	FP
+	FN	TP
+[[242   0]
+ [132   0]]
+0.65 0.0
+0.35 0.0
+
+Logistic Regression with Lasso:
+[['0.844' 'rate_started_level_chunk_30' '0.844']
+ ['0.7628' 'rate_practice_levels_chunk_30' '0.7628']
+ ['0.3972' 'rate_hints_next_clicked_chunk_30' '0.3972']
+ ['-0.3897' 'rate_started_level_chunk_10' '0.3897']
+ ['0.3398' 'rate_practice_levels_chunk_15' '0.3398']
+ ['0.3218' 'english_speaking' '0.3218']
+ ['-0.3148' 'australia' '0.3148']
+ ['-0.2518' 'rate_show_problem_alerts_chunk_10' '0.2518']
+ ['0.2465' '25-34' '0.2465']
+ ['0.2463' 'rate_show_problem_alerts_chunk_5' '0.2463']
+ ['0.2204' 'rate_practice_levels_chunk_10' '0.2204']
+ ['0.2203' 'rate_hints_next_clicked_chunk_15' '0.2203']
+ ['-0.2163' 'other_age' '0.2163']
+ ['-0.2128' '13-15' '0.2128']
+ ['0.2075' '16-17' '0.2075']
+ ['-0.2067' 'avg_time_to_complete_level_chunk_30' '0.2067']
+ ['0.2019' 'rate_started_level_chunk_5' '0.2019']
+ ['0.1949' 'rate_hint_used_chunk_30' '0.1949']
+ ['0.1802' 'other_country' '0.1802']
+ ['0.1758' 'rate_hints_clicked_chunk_30' '0.1758']
+ ['-0.1636' 'avg_time_to_complete_level_chunk_15' '0.1636']
+ ['-0.1559' 'logins_chunk_30' '0.1559']
+ ['0.1201' 'russia' '0.1201']
+ ['0.1136' 'rate_practice_levels_chunk_5' '0.1136']
+ ['-0.1103' 'avg_time_to_complete_level_chunk_5' '0.1103']
+ ['-0.1091' 'united-kingdom' '0.1091']
+ ['0.1072' 'rate_started_level_chunk_15' '0.1072']
+ ['0.0991' 'rate_hints_next_clicked_chunk_5' '0.0991']
+ ['0.0974' 'rate_hints_clicked_chunk_5' '0.0974']
+ ['-0.0966' 'rate_hints_clicked_chunk_10' '0.0966']
+ ['-0.0909' 'rate_show_problem_alerts_chunk_15' '0.0909']
+ ['0.0874' 'rate_hints_next_clicked_chunk_10' '0.0874']
+ ['-0.0836' 'canada' '0.0836']
+ ['-0.0803' 'united-states' '0.0803']
+ ['0.08' 'rate_hint_used_chunk_5' '0.08']
+ ['-0.0776' 'Paid Subscription' '0.0776']
+ ['-0.0774' 'pythonchunk_30' '0.0774']
+ ['0.0705' 'rate_hint_used_chunk_15' '0.0705']
+ ['0.0514' 'rate_show_problem_alerts_chunk_30' '0.0514']
+ ['0.0459' 'germany' '0.0459']
+ ['0.0368' '35-44' '0.0368']
+ ['0.0291' 'avg_time_to_complete_level_chunk_10' '0.0291']
+ ['0.0288' 'Signed Up' '0.0288']
+ ['-0.0235' 'rate_hint_used_chunk_10' '0.0235']
+ ['0.019' 'rate_hints_clicked_chunk_15' '0.019']
+ ['0.0118' '45-100' '0.0118']
+ ['0.0024' '18-24' '0.0024']]
+
+______________________________________
+		*************************
+
+** Now building model to predict user churn at Level100 **
+		*************************
+['Signed Up', 'Paid Subscription', 'english_speaking', 'australia', 'canada', 'germany', 'other_country', 'russia', 'united-kingdom', 'united-states', '13-15', '16-17', '18-24', '25-34', '35-44', '45-100', 'other_age', 'avg_time_to_complete_level_chunk_60', 'rate_hint_used_chunk_60', 'rate_hints_clicked_chunk_60', 'rate_hints_next_clicked_chunk_60', 'rate_started_level_chunk_60', 'rate_show_problem_alerts_chunk_60', 'rate_practice_levels_chunk_60', 'pythonchunk_60', 'logins_chunk_60', 'avg_time_to_complete_level_chunk_30', 'rate_hint_used_chunk_30', 'rate_hints_clicked_chunk_30', 'rate_hints_next_clicked_chunk_30', 'rate_started_level_chunk_30', 'rate_show_problem_alerts_chunk_30', 'rate_practice_levels_chunk_30', 'avg_time_to_complete_level_chunk_15', 'rate_hint_used_chunk_15', 'rate_hints_clicked_chunk_15', 'rate_hints_next_clicked_chunk_15', 'rate_started_level_chunk_15', 'rate_show_problem_alerts_chunk_15', 'rate_practice_levels_chunk_15', 'avg_time_to_complete_level_chunk_10', 'rate_hint_used_chunk_10', 'rate_hints_clicked_chunk_10', 'rate_hints_next_clicked_chunk_10', 'rate_started_level_chunk_10', 'rate_show_problem_alerts_chunk_10', 'rate_practice_levels_chunk_10', 'avg_time_to_complete_level_chunk_5', 'rate_hint_used_chunk_5', 'rate_hints_clicked_chunk_5', 'rate_hints_next_clicked_chunk_5', 'rate_started_level_chunk_5', 'rate_show_problem_alerts_chunk_5', 'rate_practice_levels_chunk_5']
+[100 999]
+
+On TRAIN data:
+The Logistic regression with lasso modeled categories by level with 2 classes yielded a model with:
+	accuracy = 0.742105263158,
+	precision = 0.8125,
+	recall = 0.376811594203
+	f1-score = 0.514851485149
+
+The confusion matrix is:
+	TN 	FP
+	FN	TP
+[[230  12]
+ [ 86  52]]
+0.61 0.03
+0.23 0.14
+
+On TEST data:
+The logistic regression with lasso modeled categories by level with 2 classes yielded a model with:
+	accuracy = 0.740157480315,
+	precision = 0.904761904762,
+	recall = 0.38
+	f1-score = 0.535211267606
+
+The confusion matrix is:
+	TN 	FP
+	FN	TP
+[[75  2]
+ [31 19]]
+0.59 0.02
+0.24 0.15
+
+The area under the roc curve is: 0.736103896104
+
+
+************** Baseline **************************
+
+	accuracy = 0.606299212598,
+	precision = 0.0,
+	recall = 0.0
+	f1-score = 0.0
+
+The confusion matrix is:
+	TN 	FP
+	FN	TP
+[[77  0]
+ [50  0]]
+0.61 0.0
+0.39 0.0
+
+Logistic Regression with Lasso:
+[['0.5785' 'rate_started_level_chunk_60' '0.5785']
+ ['0.4763' 'rate_practice_levels_chunk_60' '0.4763']
+ ['-0.2117' 'rate_practice_levels_chunk_10' '0.2117']
+ ['-0.1715' 'Paid Subscription' '0.1715']
+ ['-0.1681' '13-15' '0.1681']
+ ['0.1322' '25-34' '0.1322']
+ ['0.1177' 'rate_started_level_chunk_30' '0.1177']
+ ['0.1106' 'rate_hints_next_clicked_chunk_30' '0.1106']
+ ['0.1083' '16-17' '0.1083']
+ ['0.0804' 'avg_time_to_complete_level_chunk_30' '0.0804']
+ ['0.0727' 'rate_practice_levels_chunk_15' '0.0727']
+ ['0.0544' 'rate_practice_levels_chunk_30' '0.0544']
+ ['-0.0368' 'avg_time_to_complete_level_chunk_5' '0.0368']
+ ['0.0364' 'english_speaking' '0.0364']
+ ['-0.0169' '18-24' '0.0169']
+ ['-0.0078' 'other_country' '0.0078']
+ ['0.0' 'russia' '0.0']
+ ['0.0' 'canada' '0.0']
+ ['0.0' 'rate_hints_next_clicked_chunk_60' '0.0']
+ ['0.0' 'rate_hints_clicked_chunk_60' '0.0']
+ ['0.0' 'rate_hint_used_chunk_60' '0.0']
+ ['0.0' 'australia' '0.0']
+ ['0.0' 'other_age' '0.0']
+ ['0.0' 'avg_time_to_complete_level_chunk_60' '0.0']
+ ['0.0' 'united-kingdom' '0.0']
+ ['0.0' '45-100' '0.0']
+ ['0.0' '35-44' '0.0']
+ ['0.0' 'germany' '0.0']
+ ['0.0' 'united-states' '0.0']
+ ['0.0' 'rate_show_problem_alerts_chunk_60' '0.0']
+ ['0.0' 'rate_practice_levels_chunk_5' '0.0']
+ ['0.0' 'pythonchunk_60' '0.0']
+ ['0.0' 'avg_time_to_complete_level_chunk_10' '0.0']
+ ['0.0' 'rate_started_level_chunk_5' '0.0']
+ ['0.0' 'rate_hints_next_clicked_chunk_5' '0.0']
+ ['0.0' 'rate_hints_clicked_chunk_5' '0.0']
+ ['0.0' 'rate_hint_used_chunk_5' '0.0']
+ ['0.0' 'rate_show_problem_alerts_chunk_10' '0.0']
+ ['0.0' 'rate_started_level_chunk_10' '0.0']
+ ['0.0' 'rate_hints_next_clicked_chunk_10' '0.0']
+ ['0.0' 'rate_hints_clicked_chunk_10' '0.0']
+ ['0.0' 'rate_hint_used_chunk_10' '0.0']
+ ['0.0' 'rate_show_problem_alerts_chunk_15' '0.0']
+ ['0.0' 'logins_chunk_60' '0.0']
+ ['0.0' 'rate_started_level_chunk_15' '0.0']
+ ['0.0' 'rate_hints_next_clicked_chunk_15' '0.0']
+ ['0.0' 'rate_hints_clicked_chunk_15' '0.0']
+ ['0.0' 'rate_hint_used_chunk_15' '0.0']
+ ['0.0' 'avg_time_to_complete_level_chunk_15' '0.0']
+ ['0.0' 'rate_show_problem_alerts_chunk_30' '0.0']
+ ['0.0' 'rate_hints_clicked_chunk_30' '0.0']
+ ['0.0' 'rate_hint_used_chunk_30' '0.0']
+ ['0.0' 'rate_show_problem_alerts_chunk_5' '0.0']
+ ['0.0' 'Signed Up' '0.0']]
+
 In [1]:
