@@ -143,32 +143,6 @@ def drop_ages(df):
     return df
 
 
-'''functionality moved upstream '''
-# def build_up_12(df):
-#     df['pythonchunk_12'] = df['pythonchunk_12'] > .5
-#
-#     drop_these = [
-#         # 'Signed Up',
-#         # 'Paid Subscription',
-#         # 'english_speaking',
-#         # 'avg_time_to_complete_level_chunk_12'
-#         # 'rate_hint_used_chunk_12',
-#         # 'rate_hints_clicked_chunk_12',
-#         # 'rate_hints_next_clicked_chunk_12',
-#         # 'rate_started_level_chunk_12',
-#         # 'rate_show_problem_alerts_chunk_12',
-#         # 'rate_practice_levels_chunk_12',
-#         'luachunk_12',
-#         # 'pythonchunk_12',
-#         'javachunk_12',
-#         'javascriptchunk_12',
-#         'coffeescriptchunk_12',
-#         # 'logins_chunk_12'
-#     ]
-#     df.drop(drop_these, axis=1, inplace=True)
-#     return df
-
-
 def extreme_filter(X):
     '''
     Make a very simple version of X to test that model is running
@@ -187,10 +161,6 @@ def print_scores(y_true, y_pred):
     precision = precision_score(y_true, y_pred)
     recall = recall_score(y_true, y_pred)
     f1 = f1_score(y_true, y_pred)
-
-    # f1_score_none = f1_score(y_true, y_pred, average=None)
-    # f1_score_macro = f1_score(y_true, y_pred, average='macro')
-    # f1_score_weighted = f1_score(y_true, y_pred, average='weighted')
 
     print "\taccuracy = {}, \n\tprecision = {}, \n\trecall = {}\n\tf1-score = {}".format(accuracy, precision, recall, f1)
     # print "\tF1 score for each class = {} \n\tF1 score, micro = {} \n\tF1 score, macro = {} \n\tF1 score, weighted {}".format(f1_score_none, f1_score_micro, f1_score_macro, f1_score_weighted)
