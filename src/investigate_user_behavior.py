@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def read_files(path):
@@ -47,9 +48,16 @@ def get_drop_off_by_num_levels(df_users):
     level_freq['percent_balk'] = 1.0 - level_freq['percent_retained']
 
     # plot over time
-    level_freq.plot.line('num_levels_completed', 'percent_balk')
-    plt.show()
+    churn_plot = level_freq.plot.line('num_levels_completed', 'percent_balk',
+                                      xlim=[1, 200], ylim=[0.0, 0.5], legend=False, title="Percent Churn by Level")
+    churn_plot.set_xlabel("Level")
+    churn_plot.set_ylabel("Percent churn")
 
+    vals = churn_plot.get_yticks()
+    churn_plot.set_yticklabels(['{:3.0f}%'.format(x * 100) for x in vals])
+    plt.show()
+    import pdb
+    pdb.set_trace()
     # order by greatest % balk
     level_freq[['num_levels_completed', 'percent_balk']
                ].sort_values('percent_balk', ascending=False)
