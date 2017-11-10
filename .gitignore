@@ -8,5 +8,6 @@ grid_predict_*
 clean_up_older_df.py
 *.pyc
 model_predict*
-models/feature_scaler.p
+feature_scaler.p
 investigate_split_weirdness.py
+*.pyc
